@@ -1,7 +1,7 @@
 use std::io::Error as IoError;
 use thiserror::Error as ThisError;
 
-pub type Result<T> = NuScenesResult<T, NuScenesError>;
+pub type NuScenesResult<T> = Result<T, NuScenesError>;
 
 #[derive(Debug, ThisError)]
 pub enum NuScenesError {

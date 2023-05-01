@@ -1,23 +1,30 @@
+pub mod error;
+pub mod schema;
+
 use std::collections::HashMap;
+
+use schema::{
+    Attribute, CalibratedSensor, Category, EgoPose, Instance, Log, LongToken, Map, Sample,
+    SampleAnnotation, SampleData, Scene, Sensor, Visibility,
+};
 
 #[derive(Debug, Clone)]
 pub struct NuScenes {
     pub version: String,
     pub data_root: String,
-    // // TODO
-    // pub attributes: HashMap<LongToken, Attribute>,
-    // pub calibrated_sensors: HashMap<LongToken, CalibratedSensor>,
-    // pub categories: HashMap<LongToken, Category>,
-    // pub ego_pose: HashMap<LongToken, EgoPose>,
-    // pub instances: HashMap<LongToken, Instance>,
-    // pub logs: HashMap<LongToken, Log>,
-    // pub maps: HashMap<LongToken, Map>,
-    // pub scenes: HashMap<LongToken, Scene>,
-    // pub samples: HashMap<LongToken, Sample>,
-    // pub sample_annotations: HashMap<LongToken, SampleAnnotation>,
-    // pub sample_data: HashMap<LongToken, SampleData>,
-    // pub sensors: HashMap<LongToken, Sensor>,
-    // pub visibilities: HashMap<LongToken, Visibility>,
+    pub attributes: HashMap<LongToken, Attribute>,
+    pub calibrated_sensors: HashMap<LongToken, CalibratedSensor>,
+    pub categories: HashMap<LongToken, Category>,
+    pub ego_pose: HashMap<LongToken, EgoPose>,
+    pub instances: HashMap<LongToken, Instance>,
+    pub logs: HashMap<LongToken, Log>,
+    pub maps: HashMap<LongToken, Map>,
+    pub scenes: HashMap<LongToken, Scene>,
+    pub samples: HashMap<LongToken, Sample>,
+    pub sample_annotations: HashMap<LongToken, SampleAnnotation>,
+    pub sample_data: HashMap<LongToken, SampleData>,
+    pub sensors: HashMap<LongToken, Sensor>,
+    pub visibilities: HashMap<LongToken, Visibility>,
 }
 
 impl NuScenes {
