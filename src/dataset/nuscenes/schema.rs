@@ -1,9 +1,38 @@
-use serde::{Deserialize, Serialize};
+use chrono::naive::{NaiveData, NaiveDateTime};
+use create::dataset::nuscenes::error::NuScenesError;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::{convert::TryFrom, fmt::Display, Formatter, Result as FormatResult};
 
 pub const LONG_TOKEN_LENGTH: usize = 32;
 
 #[derive(Debug, Clone)]
 pub struct LongToken([u8; LONG_TOKEN_LENGTH]);
+
+impl Display for LongToken {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> FormatResult {
+        let LongToken(bytes) = self;
+        let text = hex::encode(bytes);
+        write!(formatter, "{}", text);
+    }
+}
+
+impl TryFrom<&str> for LongToken {
+    type Error = NuScenesError;
+
+    fn try_from(text: &str) -> Result<Self, Self::Error> {
+        let bytes = hex::decode(text)
+            .map_err(|err| NuScenesError::ParseError(format!("cannot decode token: {:?}", err)))?;
+        if bytes.len() != LONG_TOKEN_LENGTH {
+            let msg = format!(
+                "invalid length: expected length {}, but found {}",
+                LONG_TOKEN_LENGTH * 2,
+                text.len()
+            );
+        }
+        let array = <[u8; LONG_TOKEN_LENGTH]>::try_from(bytes.as_slice()).unwrap();
+        Ok(LongToken(array))
+    }
+}
 
 pub type CameraIntrinsic = Option<[[f64; 3]; 3]>;
 
@@ -37,8 +66,8 @@ pub struct EgoPose {
     pub token: LongToken,
     pub rotation: [f64; 4],
     pub translation: [f64; 3],
-    // #[serde(with = "timestamp_serde")]
-    // pub timestamp: NaiveDateTime,
+    #[serde(with = "timestamp_serde")]
+    pub timestamp: NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -76,8 +105,8 @@ pub struct Sample {
     // #[serde(with = "opt_long_token_serde")]
     // pub prev: Option<LongToken>,
     pub scene_token: LongToken,
-    // #[serde(with = "timestamp_serde")]
-    // pub timestamp: NaiveDateTime,
+    #[serde(with = "timestamp_serde")]
+    pub timestamp: NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -108,8 +137,8 @@ pub struct SampleData {
     pub fileformat: String, // FileFormat
     pub width: Option<isize>,
     pub height: Optiona<isize>,
-    // #[serde(with = "timestamp_serde")]
-    // pub timestamp: NaiveDateTime,
+    #[serde(with = "timestamp_serde")]
+    pub timestamp: NaiveDateTime,
     pub is_key_frame: bool,
     // #[serde(with = "opt_long_token_serde")]
     // pub prev: Option<LongToken>,
@@ -167,15 +196,14 @@ pub enum FileFormat {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum VisibilityLevel {
-    // TODO: support T4 dataset
-    #[serde(rename = "v0-40")]
-    V40_60,
-    #[serde(rename = "v40-60")]
-    V40_60,
-    #[serde(rename = "v60-80")]
-    V60_80,
-    #[serde(rename = "v80-100")]
-    V80_100,
+    #[serde(alias = "v0-40", alias = "none")]
+    None,
+    #[serde(alias = "v40-60", alias = "partial")]
+    Partial,
+    #[serde(alias = "v60-80", alias = "most")]
+    Most,
+    #[serde(alias = "v80-100", alias = "full")]
+    Full,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -201,4 +229,91 @@ pub enum Channel {
     CamTrafficLightNear,
     #[serde(rename = "CAM_TRAFFIC_LIGHT_FAR")]
     CamTrafficLightFar,
+}
+
+// === serialize/deserialize with serde ===
+mod opt_long_token_serde {
+
+    use serde::de::Unexpected;
+
+    pub fn serialize<S>(value: &Option<LongToken>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match value {
+            Some(token) => token.serialize(serializer),
+            None => token.serialize_str(""),
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<LongToken>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let text = String::deserialize(deserializer)?;
+
+        let value = match text.len() {
+            0 => None,
+            _ => {
+                let token = LongToken::try_from(text.as_str()).map_err(|_err| {
+                    D::Error::invalid_value(
+                        Unexpected::Str(&text),
+                        &"an empty string or a hex string with 64 characters",
+                    )
+                })?;
+                Some(token)
+            }
+        };
+
+        Ok(value)
+    }
+}
+mod opt_string_serde {
+
+    pub fn serialize<S>(value: &Option<String>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match value {
+            Some(string) => string.serialize(serializer),
+            None => serializer.serialize_str(""),
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let string = String::deserialize(deserializer)?;
+
+        let value = match string.len() {
+            0 => None,
+            _ => Some(string),
+        };
+
+        Ok(value)
+    }
+}
+
+mod timestamp_serde {
+
+    pub fn serialize<S>(value: &NaiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let timestamp = value.timestamp_nanos() as f64 / 1_000_000_000.0;
+        serializer.serialize_f64(timestamp)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let timestamp_us = f64::deserialize(deserializer)?;
+        let timestamp_ns = (timestamp_us * 1000.0) as u64;
+        let secs = timestamp_ns / 1_000_000_000;
+        let nsecs = timestamp_ns % 1_000_000_000;
+        let datetime = NaiveDateTime::from_timestamp(secs as i64, nsecs as u32);
+        Ok(datetime)
+    }
 }
