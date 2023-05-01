@@ -1,3 +1,12 @@
 {
-  "words": ["chrono", "datetime", "logfile", "nsecs", "nuimages", "nuscenes"]
+  "words": [
+    "chrono",
+    "datetime",
+    "fileformat",
+    "logfile",
+    "nsecs",
+    "nuimages",
+    "nuscenes",
+    "thiserror"
+  ]
 }
