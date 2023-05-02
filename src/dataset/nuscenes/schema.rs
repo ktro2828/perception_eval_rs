@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     convert::TryFrom,
     fmt::{Display, Formatter, Result as FormatResult},
+    path::PathBuf,
 };
 
 pub const LONG_TOKEN_LENGTH: usize = 32;
@@ -56,8 +57,8 @@ pub struct CalibratedSensor {
     pub sensor_token: LongToken,
     pub rotation: [f64; 4],
     pub translation: [f64; 3],
-    // #[serde(with = "camera_intrinsic_serde")]
-    // pub camera_intrinsic: CameraIntrinsic,
+    #[serde(with = "camera_intrinsic_serde")]
+    pub camera_intrinsic: CameraIntrinsic,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -88,8 +89,8 @@ pub struct Instance {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Log {
     pub token: LongToken,
-    // #[serde(with = "logfile_serde")]
-    // pub logfile: Option<PathBuf>
+    #[serde(with = "logfile_serde")]
+    pub logfile: Option<PathBuf>,
     pub vehicle: String,
     pub data_captured: String,
     pub location: String,
@@ -100,7 +101,7 @@ pub struct Map {
     pub token: LongToken,
     pub log_tokens: Vec<LongToken>,
     pub category: String,
-    pub filename: String, // PathBuf
+    pub filename: PathBuf,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -140,7 +141,7 @@ pub struct SampleData {
     pub ego_pose_token: LongToken,
     pub calibrated_sensor_token: LongToken,
     pub filename: String,
-    pub fileformat: String, // FileFormat
+    pub fileformat: FileFormat,
     pub width: Option<isize>,
     pub height: Option<isize>,
     #[serde(with = "timestamp_serde")]
@@ -238,6 +239,131 @@ pub enum Channel {
 }
 
 // === serialize/deserialize with serde ===
+mod logfile_serde {
+    use serde::{
+        de::{Error as DeserializeError, Visitor},
+        {Deserializer, Serialize, Serializer},
+    };
+    use std::{
+        fmt::{Formatter, Result as FormatResult},
+        path::PathBuf,
+    };
+
+    struct LogFileVisitor;
+
+    impl<'de> Visitor<'de> for LogFileVisitor {
+        type Value = Option<PathBuf>;
+
+        fn expecting(&self, formatter: &mut Formatter) -> FormatResult {
+            formatter.write_str("an empty string or a path to log file")
+        }
+
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: DeserializeError,
+        {
+            let value = match value {
+                "" => None,
+                path_str @ _ => Some(PathBuf::from(path_str)),
+            };
+
+            Ok(value)
+        }
+    }
+
+    pub fn serialize<S>(value: &Option<PathBuf>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match value {
+            Some(path) => path.serialize(serializer),
+            None => serializer.serialize_str(""),
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<PathBuf>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = deserializer.deserialize_any(LogFileVisitor)?;
+        Ok(value)
+    }
+}
+
+mod camera_intrinsic_serde {
+    use super::CameraIntrinsic;
+    use serde::{
+        de::{Error as DeserializeError, SeqAccess, Visitor},
+        ser::SerializeSeq,
+        Deserializer, Serializer,
+    };
+    use std::fmt::{Formatter, Result as FormatResult};
+
+    struct CameraIntrinsicVisitor;
+
+    impl<'de> Visitor<'de> for CameraIntrinsicVisitor {
+        type Value = CameraIntrinsic;
+
+        fn expecting(&self, formatter: &mut Formatter) -> FormatResult {
+            formatter.write_str("an empty array or a 3x3 two-dimensional array")
+        }
+
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: SeqAccess<'de>,
+        {
+            let mut matrix = [[0.0; 3]; 3];
+            let mut length = 0;
+
+            for ind in 0..3 {
+                if let Some(row) = seq.next_element::<[f64; 3]>()? {
+                    matrix[ind] = row;
+                    length += 1;
+                } else {
+                    break;
+                }
+            }
+
+            let value = match length {
+                0 => None,
+                3 => Some(matrix),
+                _ => {
+                    return Err(A::Error::invalid_length(length, &self));
+                }
+            };
+
+            Ok(value)
+        }
+    }
+
+    pub fn serialize<S>(value: &CameraIntrinsic, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match value {
+            Some(matrix) => {
+                let mut seq: S::SerializeSeq = serializer.serialize_seq(Some(3))?;
+                for ind in 0..3 {
+                    seq.serialize_element(&matrix[ind])?;
+                }
+                seq.end()
+            }
+            None => {
+                let seq: S::SerializeSeq = serializer.serialize_seq(Some(0))?;
+                seq.end()
+            }
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<CameraIntrinsic, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value: Option<[[f64; 3]; 3]> = deserializer.deserialize_any(CameraIntrinsicVisitor)?;
+        Ok(value)
+    }
+}
+
 mod long_token_serde {
     use super::LongToken;
     use serde::{
