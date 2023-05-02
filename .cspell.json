@@ -4,6 +4,7 @@
     "datetime",
     "fileformat",
     "logfile",
+    "nalgebra",
     "nsecs",
     "nuimages",
     "nuscenes",

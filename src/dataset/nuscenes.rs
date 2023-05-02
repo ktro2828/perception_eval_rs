@@ -11,12 +11,22 @@ use std::{
 };
 
 use error::{NuScenesError, NuScenesResult};
+use image::DynamicImage;
 use iter::Iter;
+use nalgebra::{Dyn, Matrix, VecStorage, U5};
 use schema::{
     Attribute, CalibratedSensor, Category, EgoPose, Instance, Log, LongToken, Map, Sample,
     SampleAnnotation, SampleData, Scene, Sensor, Visibility,
 };
 use serde::de::DeserializeOwned;
+
+pub type PointCloudMatrix = Matrix<f32, Dyn, U5, VecStorage<f32, Dyn, U5>>;
+
+#[derive(Clone)]
+pub enum RawData {
+    PointCloud(PointCloudMatrix),
+    Image(DynamicImage),
+}
 
 #[derive(Debug, Clone)]
 pub struct NuScenes {
