@@ -1,5 +1,5 @@
 [package]
-name = "perception_eval_rs"
+name = "perception-eval"
 version = "0.1.0"
 authors = ["Kotaro Uetak <kotaro.uetake@tier4.jp>"]
 edition = "2021"

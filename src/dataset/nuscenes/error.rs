@@ -7,6 +7,8 @@ pub type NuScenesResult<T> = Result<T, NuScenesError>;
 pub enum NuScenesError {
     #[error("internal error")]
     InternalError,
+    #[error("corrupted file: {0}")]
+    CorruptedDataset(String),
     #[error("I/O error: {0}")]
     IoError(#[from] IoError),
     #[error("fail to parse: {0}")]
