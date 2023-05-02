@@ -74,7 +74,7 @@ pub struct EgoPose {
     pub rotation: [f64; 4],
     pub translation: [f64; 3],
     #[serde(with = "timestamp_serde")]
-    pub timestamp: Option<NaiveDateTime>,
+    pub timestamp: NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -113,7 +113,7 @@ pub struct Sample {
     pub prev: Option<LongToken>,
     pub scene_token: LongToken,
     #[serde(with = "timestamp_serde")]
-    pub timestamp: Option<NaiveDateTime>,
+    pub timestamp: NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -145,7 +145,7 @@ pub struct SampleData {
     pub width: Option<isize>,
     pub height: Option<isize>,
     #[serde(with = "timestamp_serde")]
-    pub timestamp: Option<NaiveDateTime>,
+    pub timestamp: NaiveDateTime,
     pub is_key_frame: bool,
     #[serde(with = "opt_long_token_serde")]
     pub prev: Option<LongToken>,
@@ -159,7 +159,7 @@ pub struct Scene {
     pub name: String,
     pub description: String,
     pub log_token: LongToken,
-    pub nbr_sample: usize,
+    pub nbr_samples: usize,
     pub first_sample_token: LongToken,
     pub last_sample_token: LongToken,
 }
@@ -452,53 +452,49 @@ mod opt_long_token_serde {
     }
 }
 
-// mod opt_string_serde {
-//     use serde::{Deserialize, Deserializer, Serialize, Serializer};
+#[allow(dead_code)]
+mod opt_string_serde {
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-//     pub fn serialize<S>(value: &Option<String>, serializer: S) -> Result<S::Ok, S::Error>
-//     where
-//         S: Serializer,
-//     {
-//         match value {
-//             Some(string) => string.serialize(serializer),
-//             None => serializer.serialize_str(""),
-//         }
-//     }
-
-//     pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
-//     where
-//         D: Deserializer<'de>,
-//     {
-//         let string = String::deserialize(deserializer)?;
-
-//         let value: Option<String> = match string.len() {
-//             0 => None,
-//             _ => Some(string),
-//         };
-
-//         Ok(value)
-//     }
-// }
-
-mod timestamp_serde {
-
-    use chrono::NaiveDateTime;
-    use serde::{Deserialize, Deserializer, Serializer};
-
-    pub fn serialize<S>(value: &Option<NaiveDateTime>, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(value: &Option<String>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
         match value {
-            Some(time) => {
-                let timestamp = time.timestamp_nanos() as f64 / 1_000_000_000.0;
-                serializer.serialize_f64(timestamp)
-            }
-            None => serializer.serialize_f64(f64::NAN),
+            Some(string) => string.serialize(serializer),
+            None => serializer.serialize_str(""),
         }
     }
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<NaiveDateTime>, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let string = String::deserialize(deserializer)?;
+
+        let value: Option<String> = match string.len() {
+            0 => None,
+            _ => Some(string),
+        };
+
+        Ok(value)
+    }
+}
+
+mod timestamp_serde {
+
+    use chrono::NaiveDateTime;
+    use serde::{de::Error as DeserializeError, Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S>(value: &NaiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let timestamp = value.timestamp_nanos() as f64 / 1_000_000_000.0;
+        serializer.serialize_f64(timestamp)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -508,6 +504,9 @@ mod timestamp_serde {
         let nsecs = timestamp_ns % 1_000_000_000;
         let datetime: Option<NaiveDateTime> =
             NaiveDateTime::from_timestamp_opt(secs as i64, nsecs as u32);
-        Ok(datetime)
+        match datetime {
+            Some(value) => Ok(value),
+            None => Err(D::Error::custom("Could not load timestamp")),
+        }
     }
 }

@@ -8,6 +8,7 @@
     "nalgebra",
     "nsecs",
     "nuimages",
+    "nusc",
     "nuscenes",
     "thiserror"
   ]

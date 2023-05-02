@@ -1,5 +1,7 @@
 pub mod error;
+pub mod internal;
 pub mod iter;
+pub mod iter_impl;
 pub mod schema;
 
 use std::{
@@ -19,6 +21,9 @@ use schema::{
     SampleAnnotation, SampleData, Scene, Sensor, Visibility,
 };
 use serde::de::DeserializeOwned;
+use std::slice::Iter as SliceIter;
+
+use self::internal::SampleInternal;
 
 pub type PointCloudMatrix = Matrix<f32, Dyn, U5, VecStorage<f32, Dyn, U5>>;
 
@@ -233,6 +238,54 @@ impl NuScenes {
         &'a self,
     ) -> Iter<'a, CalibratedSensor, HashMapKeys<'a, LongToken, CalibratedSensor>> {
         self.refer_iter(self.calibrated_sensors.keys())
+    }
+
+    pub fn category_iter<'a>(&'a self) -> Iter<'a, Category, HashMapKeys<'a, LongToken, Category>> {
+        self.refer_iter(self.categories.keys())
+    }
+
+    pub fn ego_pose_iter<'a>(&'a self) -> Iter<'a, EgoPose, HashMapKeys<'a, LongToken, EgoPose>> {
+        self.refer_iter(self.ego_poses.keys())
+    }
+
+    pub fn instance_iter<'a>(&'a self) -> Iter<'a, Instance, HashMapKeys<'a, LongToken, Instance>> {
+        self.refer_iter(self.instances.keys())
+    }
+
+    pub fn log_iter<'a>(&'a self) -> Iter<'a, Log, HashMapKeys<'a, LongToken, Log>> {
+        self.refer_iter(self.logs.keys())
+    }
+
+    pub fn map_iter<'a>(&'a self) -> Iter<'a, Map, HashMapKeys<'a, LongToken, Map>> {
+        self.refer_iter(self.maps.keys())
+    }
+
+    pub fn scene_iter<'a>(&'a self) -> Iter<'a, Scene, SliceIter<'a, LongToken>> {
+        // TODO
+    }
+
+    pub fn sample_iter<'a>(&'a self) -> Iter<'a, SampleInternal, SliceIter<'a, LongToken>> {
+        // TODO
+    }
+
+    pub fn sample_annotation_iter<'a>(
+        &'a self,
+    ) -> Iter<'a, SampleAnnotation, HashMapKeys<'a, LongToken, SampleAnnotation>> {
+        self.refer_iter(self.sample_annotations.keys())
+    }
+
+    pub fn sample_data_iter<'a>(&'a self) -> Iter<'a, SampleData, SliceIter<'a, LongToken>> {
+        // TODO
+    }
+
+    pub fn sensor_iter<'a>(&'a self) -> Iter<'a, Sensor, HashMapKeys<'a, LongToken, Sensor>> {
+        self.refer_iter(self.sensors.keys())
+    }
+
+    pub fn visibility_iter<'a>(
+        &'a self,
+    ) -> Iter<'a, Visibility, HashMapKeys<'a, LongToken, Visibility>> {
+        self.refer_iter(self.visibilities.keys())
     }
 
     fn refer_iter<'a, Value, It>(&'a self, tokens_iter: It) -> Iter<'a, Value, It> {
