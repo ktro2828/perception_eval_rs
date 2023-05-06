@@ -4,6 +4,7 @@
     "chrono",
     "datetime",
     "fileformat",
+    "itertools",
     "logfile",
     "nalgebra",
     "nsecs",

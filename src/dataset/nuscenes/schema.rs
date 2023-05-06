@@ -9,6 +9,9 @@ use std::{
 };
 
 pub const LONG_TOKEN_LENGTH: usize = 32;
+pub const SHORT_TOKEN_LENGTH: usize = 16;
+
+pub type CameraIntrinsic = Option<[[f64; 3]; 3]>;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct LongToken([u8; LONG_TOKEN_LENGTH]);
@@ -41,7 +44,35 @@ impl TryFrom<&str> for LongToken {
     }
 }
 
-pub type CameraIntrinsic = Option<[[f64; 3]; 3]>;
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct ShortToken([u8; SHORT_TOKEN_LENGTH]);
+
+impl Display for ShortToken {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> FormatResult {
+        let ShortToken(bytes) = self;
+        let text = hex::encode(bytes);
+        write!(formatter, "{}", text)
+    }
+}
+
+impl TryFrom<&str> for ShortToken {
+    type Error = NuScenesError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let bytes = hex::decode(value)
+            .map_err(|err| NuScenesError::ParseError(format!("cannot decode token: {:?}", err)))?;
+        if bytes.len() != SHORT_TOKEN_LENGTH {
+            let msg = format!(
+                "invalid length: expected length {}, bug found {}",
+                SHORT_TOKEN_LENGTH * 2,
+                value.len()
+            );
+            return Err(NuScenesError::ParseError(msg));
+        }
+        let array = <[u8; SHORT_TOKEN_LENGTH]>::try_from(bytes.as_slice()).unwrap();
+        Ok(ShortToken(array))
+    }
+}
 
 // === Schemas ===
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -98,7 +129,7 @@ pub struct Log {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Map {
-    pub token: LongToken,
+    pub token: ShortToken,
     pub log_tokens: Vec<LongToken>,
     pub category: String,
     pub filename: PathBuf,
@@ -410,6 +441,57 @@ mod long_token_serde {
             D: Deserializer<'de>,
         {
             let token = deserializer.deserialize_string(LongTokenVisitor)?;
+            Ok(token)
+        }
+    }
+}
+
+mod short_token_serde {
+    use super::ShortToken;
+    use serde::{
+        de::{Error as DeserializeError, Unexpected, Visitor},
+        Deserialize, Deserializer, Serialize, Serializer,
+    };
+    use std::{
+        convert::TryFrom,
+        fmt::{Formatter, Result as FormatResult},
+    };
+
+    struct ShortTokenVisitor;
+
+    impl<'de> Visitor<'de> for ShortTokenVisitor {
+        type Value = ShortToken;
+
+        fn expecting(&self, formatter: &mut Formatter) -> FormatResult {
+            formatter.write_str("a hex string with 64 characters")
+        }
+
+        fn visit_str<E>(self, text: &str) -> Result<Self::Value, E>
+        where
+            E: DeserializeError,
+        {
+            ShortToken::try_from(text)
+                .map_err(|_err| E::invalid_value(Unexpected::Str(&text), &self))
+        }
+    }
+
+    impl Serialize for ShortToken {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            let ShortToken(bytes) = self;
+            let text = hex::encode(bytes);
+            serializer.serialize_str(&text)
+        }
+    }
+
+    impl<'de> Deserialize<'de> for ShortToken {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            let token = deserializer.deserialize_string(ShortTokenVisitor)?;
             Ok(token)
         }
     }

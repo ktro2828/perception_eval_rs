@@ -4,26 +4,26 @@ pub mod iter;
 pub mod iter_impl;
 pub mod schema;
 
+use error::{NuScenesError, NuScenesResult};
+use image::DynamicImage;
+use iter::Iter;
+use itertools::Itertools;
+use nalgebra::{Dyn, Matrix, VecStorage, U5};
+use schema::{
+    Attribute, CalibratedSensor, Category, EgoPose, Instance, Log, LongToken, Map, Sample,
+    SampleAnnotation, SampleData, Scene, Sensor, ShortToken, Visibility,
+};
+use serde::de::DeserializeOwned;
 use std::{
     collections::{hash_map::Keys as HashMapKeys, HashMap},
     fs::File,
     io::BufReader,
     marker::PhantomData,
     path::{Path, PathBuf},
+    slice::Iter as SliceIter,
 };
 
-use error::{NuScenesError, NuScenesResult};
-use image::DynamicImage;
-use iter::Iter;
-use nalgebra::{Dyn, Matrix, VecStorage, U5};
-use schema::{
-    Attribute, CalibratedSensor, Category, EgoPose, Instance, Log, LongToken, Map, Sample,
-    SampleAnnotation, SampleData, Scene, Sensor, Visibility,
-};
-use serde::de::DeserializeOwned;
-use std::slice::Iter as SliceIter;
-
-use self::internal::SampleInternal;
+use self::internal::{InstanceInternal, SampleInternal, SceneInternal};
 
 pub type PointCloudMatrix = Matrix<f32, Dyn, U5, VecStorage<f32, Dyn, U5>>;
 
@@ -35,21 +35,25 @@ pub enum RawData {
 
 #[derive(Debug, Clone)]
 pub struct NuScenes {
-    pub version: String,
-    pub data_root: PathBuf,
-    pub attributes: HashMap<LongToken, Attribute>,
-    pub calibrated_sensors: HashMap<LongToken, CalibratedSensor>,
-    pub categories: HashMap<LongToken, Category>,
-    pub ego_poses: HashMap<LongToken, EgoPose>,
-    pub instances: HashMap<LongToken, Instance>,
-    pub logs: HashMap<LongToken, Log>,
-    pub maps: HashMap<LongToken, Map>,
-    pub scenes: HashMap<LongToken, Scene>,
-    pub samples: HashMap<LongToken, Sample>,
-    pub sample_annotations: HashMap<LongToken, SampleAnnotation>,
-    pub sample_data: HashMap<LongToken, SampleData>,
-    pub sensors: HashMap<LongToken, Sensor>,
-    pub visibilities: HashMap<LongToken, Visibility>,
+    pub(super) version: String,
+    pub(super) data_root: PathBuf,
+    pub(super) attributes: HashMap<LongToken, Attribute>,
+    pub(super) calibrated_sensors: HashMap<LongToken, CalibratedSensor>,
+    pub(super) categories: HashMap<LongToken, Category>,
+    pub(super) ego_poses: HashMap<LongToken, EgoPose>,
+    pub(super) instances: HashMap<LongToken, Instance>,
+    pub(super) logs: HashMap<LongToken, Log>,
+    pub(super) maps: HashMap<ShortToken, Map>,
+    pub(super) scenes: HashMap<LongToken, Scene>,
+    pub(super) samples: HashMap<LongToken, Sample>,
+    pub(super) sample_annotations: HashMap<LongToken, SampleAnnotation>,
+    pub(super) sample_data: HashMap<LongToken, SampleData>,
+    pub(super) sensors: HashMap<LongToken, Sensor>,
+    pub(super) visibilities: HashMap<LongToken, Visibility>,
+    pub(super) sorted_ego_pose_tokens: Vec<LongToken>,
+    pub(super) sorted_sample_tokens: Vec<LongToken>,
+    pub(super) sorted_sample_data_tokens: Vec<LongToken>,
+    pub(super) sorted_scene_tokens: Vec<LongToken>,
 }
 
 impl NuScenes {
@@ -166,7 +170,7 @@ impl NuScenes {
             .map(|log| (log.token.clone(), log))
             .collect::<HashMap<_, _>>();
 
-        let maps: HashMap<LongToken, Map> = map_list
+        let maps: HashMap<ShortToken, Map> = map_list
             .into_iter()
             .map(|map| (map.token.clone(), map))
             .collect::<HashMap<_, _>>();
@@ -206,6 +210,121 @@ impl NuScenes {
         // --- Do something ---
         //
 
+        let mut sample_to_annotation_groups = sample_annotations
+            .iter()
+            .map(|(sample_annotation_token, sample_annotation)| {
+                (
+                    sample_annotation.sample_token.clone(),
+                    sample_annotation_token.clone(),
+                )
+            })
+            .into_group_map();
+
+        let mut sample_to_sample_data_groups = sample_data
+            .iter()
+            .map(|(sample_data_token, sample_data)| {
+                (sample_data.sample_token.clone(), sample_data_token.clone())
+            })
+            .into_group_map();
+
+        let instance_internal_map = instances
+            .into_iter()
+            .map(|(instance_token, instance)| {
+                let ret = InstanceInternal::from(instance, &sample_annotations)?;
+                Ok((instance_token, ret))
+            })
+            .collect::<NuScenesResult<HashMap<_, _>>>()?;
+
+        let scene_internal_map = scenes
+            .into_iter()
+            .map(|(scene_token, scene)| {
+                let internal = SceneInternal::from(scene, &samples)?;
+                Ok((scene_token, internal))
+            })
+            .collect::<NuScenesResult<HashMap<_, _>>>()?;
+
+        let sample_internal_map = samples
+            .into_iter()
+            .map(|(sample_token, sample)| {
+                let sample_data_tokens = sample_to_sample_data_groups
+                    .remove(&sample_token)
+                    .ok_or(NuScenesError::InternalError)?;
+                let annotation_tokens = sample_to_annotation_groups
+                    .remove(&sample_token)
+                    .ok_or(NuScenesError::InternalError)?;
+                let internal = SampleInternal::from(sample, annotation_tokens, sample_data_tokens);
+                Ok((sample_token, internal))
+            })
+            .collect::<NuScenesResult<HashMap<_, _>>>()?;
+
+        let sorted_ego_pose_tokens = {
+            let mut sorted_pairs = ego_poses
+                .iter()
+                .map(|(sample_token, sample)| (sample_token, sample.timestamp))
+                .collect::<Vec<_>>();
+            sorted_pairs.sort_by_cached_key(|(_, timestamp)| timestamp.clone());
+
+            sorted_pairs
+                .into_iter()
+                .map(|(token, _)| token.clone())
+                .collect::<Vec<_>>()
+        };
+
+        let sorted_sample_tokens = {
+            let mut sorted_pairs = sample_internal_map
+                .iter()
+                .map(|(sample_token, sample)| (sample_token, sample.timestamp))
+                .collect::<Vec<_>>();
+            sorted_pairs.sort_by_cached_key(|(_, timestamp)| timestamp.clone());
+
+            sorted_pairs
+                .into_iter()
+                .map(|(token, _)| token.clone())
+                .collect::<Vec<_>>()
+        };
+
+        let sorted_sample_data_tokens = {
+            let mut sorted_pairs = sample_data
+                .iter()
+                .map(|(sample_token, sample)| (sample_token, sample.timestamp))
+                .collect::<Vec<_>>();
+            sorted_pairs.sort_by_cached_key(|(_, timestamp)| timestamp.clone());
+
+            sorted_pairs
+                .into_iter()
+                .map(|(token, _)| token.clone())
+                .collect::<Vec<_>>()
+        };
+
+        let sorted_scene_tokens = {
+            let mut sorted_pairs = scene_internal_map
+                .iter()
+                .map(|(scene_token, scene)| {
+                    let timestamp = scene
+                        .sample_tokens
+                        .iter()
+                        .map(|sample_token| {
+                            let sample = sample_internal_map
+                                .get(&sample_token)
+                                .ok_or(NuScenesError::InternalError)?;
+                            Ok(sample.timestamp)
+                        })
+                        .collect::<NuScenesResult<Vec<_>>>()?
+                        .into_iter()
+                        .min()
+                        .ok_or(NuScenesError::InternalError)?;
+
+                    Ok((scene_token, timestamp))
+                })
+                .collect::<NuScenesResult<Vec<_>>>()?;
+            sorted_pairs.sort_by_cached_key(|(_, timestamp)| timestamp.clone());
+
+            sorted_pairs
+                .into_iter()
+                .map(|(token, _)| token.clone())
+                .collect::<Vec<_>>()
+        };
+
         let ret: NuScenes = Self {
             version: version.as_ref().to_owned(),
             data_root: dataset_dir.to_owned(),
@@ -222,6 +341,10 @@ impl NuScenes {
             sample_data: sample_data,
             sensors: sensors,
             visibilities: visibilities,
+            sorted_ego_pose_tokens: sorted_ego_pose_tokens,
+            sorted_scene_tokens: sorted_scene_tokens,
+            sorted_sample_tokens: sorted_sample_tokens,
+            sorted_sample_data_tokens: sorted_sample_data_tokens,
         };
 
         Ok(ret)
@@ -244,8 +367,8 @@ impl NuScenes {
         self.refer_iter(self.categories.keys())
     }
 
-    pub fn ego_pose_iter<'a>(&'a self) -> Iter<'a, EgoPose, HashMapKeys<'a, LongToken, EgoPose>> {
-        self.refer_iter(self.ego_poses.keys())
+    pub fn ego_pose_iter<'a>(&'a self) -> Iter<'a, EgoPose, SliceIter<'a, LongToken>> {
+        self.refer_iter(self.sorted_ego_pose_tokens.iter())
     }
 
     pub fn instance_iter<'a>(&'a self) -> Iter<'a, Instance, HashMapKeys<'a, LongToken, Instance>> {
@@ -256,16 +379,16 @@ impl NuScenes {
         self.refer_iter(self.logs.keys())
     }
 
-    pub fn map_iter<'a>(&'a self) -> Iter<'a, Map, HashMapKeys<'a, LongToken, Map>> {
+    pub fn map_iter<'a>(&'a self) -> Iter<'a, Map, HashMapKeys<'a, ShortToken, Map>> {
         self.refer_iter(self.maps.keys())
     }
 
     pub fn scene_iter<'a>(&'a self) -> Iter<'a, Scene, SliceIter<'a, LongToken>> {
-        // TODO
+        self.refer_iter(self.sorted_scene_tokens.iter())
     }
 
     pub fn sample_iter<'a>(&'a self) -> Iter<'a, SampleInternal, SliceIter<'a, LongToken>> {
-        // TODO
+        self.refer_iter(self.sorted_sample_tokens.iter())
     }
 
     pub fn sample_annotation_iter<'a>(
@@ -275,7 +398,7 @@ impl NuScenes {
     }
 
     pub fn sample_data_iter<'a>(&'a self) -> Iter<'a, SampleData, SliceIter<'a, LongToken>> {
-        // TODO
+        self.refer_iter(self.sorted_sample_data_tokens.iter())
     }
 
     pub fn sensor_iter<'a>(&'a self) -> Iter<'a, Sensor, HashMapKeys<'a, LongToken, Sensor>> {
@@ -331,6 +454,5 @@ where
         let msg = format!("failed to load file {}: {:?}", path.as_ref().display(), err);
         NuScenesError::CorruptedDataset(msg)
     })?;
-
     Ok(value)
 }

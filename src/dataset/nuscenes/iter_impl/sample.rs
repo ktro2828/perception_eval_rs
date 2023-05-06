@@ -18,4 +18,18 @@ impl<'a> WithDataset<'a, SampleInternal> {
     pub fn scene(&self) -> WithDataset<'a, SceneInternal> {
         self.refer(&self.dataset.scenes[&self.inner.scene_token])
     }
+
+    pub fn prev(&self) -> Option<WithDataset<'a, SampleInternal>> {
+        self.inner
+            .prev
+            .as_ref()
+            .map(|token| self.refer(&self.dataset.samples[token]))
+    }
+
+    pub fn next(&self) -> Option<WithDataset<'a, SampleInternal>> {
+        self.inner
+            .next
+            .as_ref()
+            .map(|token| self.refer(self.dataset.samples[token]))
+    }
 }
