@@ -51,15 +51,58 @@ impl<'a> LabelConverter<'a> {
 
         match prefix {
             "autoware" => {
+                // car
                 pairs.insert("car", Label::Car);
                 pairs.insert("vehicle.car", Label::Car);
+                pairs.insert("vehicle.construction", Label::Car);
+                pairs.insert("vehicle.emergency (ambulance & police)", Label::Car);
+                pairs.insert("vehicle.police", Label::Car);
+                pairs.insert("vehicle.fire", Label::Car);
+                pairs.insert("vehicle.ambulance", Label::Car);
+                // truck
                 pairs.insert("truck", Label::Truck);
+                pairs.insert("vehicle.truck", Label::Truck);
+                pairs.insert("trailer", Label::Truck);
+                pairs.insert("vehicle.trailer", Label::Truck);
+                // bus
                 pairs.insert("bus", Label::Bus);
+                pairs.insert("vehicle.bus", Label::Bus);
+                pairs.insert("vehicle.bus (bendy & rigid)", Label::Bus);
+                pairs.insert("vehicle.bus.rigid", Label::Bus);
+                pairs.insert("vehicle.bus.bendy", Label::Bus);
+                // bicycle
                 pairs.insert("bicycle", Label::Bicycle);
+                pairs.insert("vehicle.bicycle", Label::Bicycle);
+                // motorbike
                 pairs.insert("motorbike", Label::Motorbike);
+                pairs.insert("vehicle.motorcycle", Label::Motorbike);
+                // pedestrian
                 pairs.insert("pedestrian", Label::Pedestrian);
+                pairs.insert("pedestrian.adult", Label::Pedestrian);
+                pairs.insert("pedestrian.child", Label::Pedestrian);
+                pairs.insert("pedestrian.construction_worker", Label::Pedestrian);
+                pairs.insert("pedestrian.personal_mobility", Label::Pedestrian);
+                pairs.insert("pedestrian.police_officer", Label::Pedestrian);
+                pairs.insert("pedestrian.stroller", Label::Pedestrian);
+                pairs.insert("pedestrian.wheelchair", Label::Pedestrian);
+                pairs.insert("human.pedestrian.adult", Label::Pedestrian);
+                pairs.insert("human.pedestrian.child", Label::Pedestrian);
+                pairs.insert("human.pedestrian.construction_worker", Label::Pedestrian);
+                pairs.insert("human.pedestrian.personal_mobility", Label::Pedestrian);
+                pairs.insert("human.pedestrian.police_officer", Label::Pedestrian);
+                pairs.insert("human.pedestrian.stroller", Label::Pedestrian);
+                pairs.insert("human.pedestrian.wheelchair", Label::Pedestrian);
+                // animal
                 pairs.insert("animal", Label::Animal);
+                // unknown
                 pairs.insert("unknown", Label::Unknown);
+                pairs.insert("movable_object.barrier", Label::Unknown);
+                pairs.insert("movable_object.debris", Label::Unknown);
+                pairs.insert("movable_object.pushable_pullable", Label::Unknown);
+                pairs.insert("movable_object.trafficcone", Label::Unknown);
+                pairs.insert("movable_object.traffic_cone", Label::Unknown);
+                pairs.insert("static_object.bicycle_rack", Label::Unknown);
+                pairs.insert("static_object.bollard", Label::Unknown);
             }
             _ => Err(LabelError::ValueError(prefix.to_string()))?,
         }
@@ -71,7 +114,7 @@ impl<'a> LabelConverter<'a> {
         match self.pairs.contains_key(name) {
             true => self.pairs[name].clone(),
             false => {
-                log::warn!("unexpected label name: {}", name);
+                log::warn!("unexpected label name: {}, set as Label::Unknown", name);
                 Label::Unknown
             }
         }

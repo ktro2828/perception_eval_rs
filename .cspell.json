@@ -14,7 +14,10 @@
     "nuscenes",
     "powi",
     "powf",
+    "pullable",
+    "pushable",
     "structopt",
-    "thiserror"
+    "thiserror",
+    "trafficcone"
   ]
 }

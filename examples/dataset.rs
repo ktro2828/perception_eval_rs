@@ -14,7 +14,8 @@ struct Args {
 }
 
 fn main() {
-    let log_dir = Path::new("./data");
+    let log_dir_name = format!("./data/{}", chrono::Local::now().format("%Y%m%d_%H%M%S"));
+    let log_dir = Path::new(&log_dir_name);
     let _ret = configure_logger(log_dir, log::Level::Debug);
     let Args { version, data_root } = Args::parse();
     let evaluation_task = EvaluationTask::Detection;
