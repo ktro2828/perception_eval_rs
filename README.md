@@ -38,6 +38,8 @@ $ cargo doc --open
 Run the following code to run examples.
 
 ```shell
+# if you want see details
+# $ export RUST_BACKTRACE=1 [or "full"]
 $ cargo run --example <FILE_NAME> [-- <ARGUMENTS>]
 ```
 

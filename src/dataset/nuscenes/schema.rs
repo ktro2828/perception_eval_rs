@@ -7,7 +7,7 @@ use std::{
     path::PathBuf,
 };
 
-pub const LONG_TOKEN_LENGTH: usize = 32;
+pub const LONG_TOKEN_LENGTH: usize = 16; // 32
 pub const SHORT_TOKEN_LENGTH: usize = 16;
 
 pub type CameraIntrinsic = Option<[[f64; 3]; 3]>;
@@ -211,14 +211,18 @@ pub enum Modality {
     Camera,
     #[serde(rename = "lidar")]
     Lidar,
+    #[serde(rename = "radar")]
+    Radar,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum FileFormat {
-    #[serde(rename = "bin")]
+    #[serde(rename = "bin", alias = "pcd")]
     Bin,
-    #[serde(rename = "jpeg")]
+    #[serde(rename = "jpeg", alias = "jpg")]
     Jpeg,
+    #[serde(rename = "png")]
+    Png,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -235,6 +239,7 @@ pub enum VisibilityLevel {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Channel {
+    // camera
     #[serde(rename = "CAM_BACK")]
     CamBack,
     #[serde(rename = "CAM_BACK_LEFT")]
@@ -249,8 +254,25 @@ pub enum Channel {
     CamFrontRight,
     #[serde(rename = "CAM_FRONT_ZOOMED")]
     CamFrontZoomed,
-    #[serde(rename = "LIDAR_TOP")]
+    // lidar
+    #[serde(rename = "LIDAR_TOP", alias = "LIDAR_CONCAT")]
     LidarTop,
+    // radar
+    #[serde(rename = "RADAR_BACK_LEFT")]
+    RadarBackLeft,
+    #[serde(rename = "RADAR_BACK_RIGHT")]
+    RadarBackRight,
+    #[serde(rename = "RADAR_FRONT")]
+    RadarFront,
+    #[serde(rename = "RADAR_FRONT_LEFT")]
+    RadarFrontLeft,
+    #[serde(rename = "RADAR_FRONT_RIGHT")]
+    RadarFrontRight,
+    // T4 dataset
+    #[serde(rename = "CAM_TRAFFIC_LIGHT_NEAR")]
+    CamTrafficLightNear,
+    #[serde(rename = "CAM_TRAFFIC_LIGHT_FAR")]
+    CamTrafficLightFar,
 }
 
 mod logfile_serde {

@@ -52,6 +52,7 @@ impl<'a> LabelConverter<'a> {
         match prefix {
             "autoware" => {
                 pairs.insert("car", Label::Car);
+                pairs.insert("vehicle.car", Label::Car);
                 pairs.insert("truck", Label::Truck);
                 pairs.insert("bus", Label::Bus);
                 pairs.insert("bicycle", Label::Bicycle);
@@ -66,10 +67,13 @@ impl<'a> LabelConverter<'a> {
         Ok(ret)
     }
 
-    pub fn convert(&self, name: &str) -> LabelResult<Label> {
+    pub fn convert(&self, name: &str) -> Label {
         match self.pairs.contains_key(name) {
-            true => Ok(self.pairs[name].clone()),
-            false => Err(LabelError::ValueError(name.to_string())),
+            true => self.pairs[name].clone(),
+            false => {
+                log::warn!("unexpected label name: {}", name);
+                Label::Unknown
+            }
         }
     }
 }
@@ -80,7 +84,7 @@ pub fn convert_labels(
 ) -> LabelResult<Vec<Label>> {
     let mut ret = Vec::new();
     for name in target_labels {
-        let label = converter.convert(name)?;
+        let label = converter.convert(name);
         ret.push(label);
     }
     Ok(ret)

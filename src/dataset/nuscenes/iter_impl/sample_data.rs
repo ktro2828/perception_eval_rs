@@ -64,7 +64,7 @@ impl<'a> WithDataset<'a, SampleData> {
                     }
                 }
             }
-            FileFormat::Jpeg => {
+            FileFormat::Jpeg | FileFormat::Png => {
                 let image = image::open(path)?;
                 LoadedSampleData::Image(image)
             }

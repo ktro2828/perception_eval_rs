@@ -278,8 +278,9 @@ impl NuScenes {
         for (_, map) in map_map.iter() {
             for token in map.log_tokens.iter() {
                 if !log_map.contains_key(token) {
-                    let msg = format!("the token {} does not refer to any log", token);
-                    return Err(NuScenesError::CorruptedDataset(msg));
+                    // let _msg = format!("the token {} does not refer to any log", token);
+                    // return Err(NuScenesError::CorruptedDataset(msg));
+                    log::warn!("the token {} does not refer to any log", token);
                 }
             }
         }
