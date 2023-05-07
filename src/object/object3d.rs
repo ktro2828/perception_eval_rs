@@ -32,4 +32,19 @@ impl DynamicObject {
     pub fn label_name(&self) -> String {
         self.label.to_string()
     }
+
+    pub fn get_footprint(&self) -> Vec<[f64; 3]> {
+        let mut center2corners = Vec::new();
+        center2corners.push([self.size[1] * 0.5, self.size[0] * 0.5, 0.0]);
+        center2corners.push([-self.size[1] * 0.5, self.size[0] * 0.5, 0.0]);
+        center2corners.push([-self.size[1] * 0.5, -self.size[0] * 0.5, 0.0]);
+        center2corners.push([self.size[1] * 0.5, -self.size[0] * 0.5, 0.0]);
+
+        let mut footprint = Vec::new();
+        for corner in center2corners {
+            footprint.push(corner)
+        }
+
+        footprint
+    }
 }
