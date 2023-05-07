@@ -27,10 +27,18 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 
 ## Documents
 
-Run the following code, to see the document.
+Run the following code to see the document.
 
-```
+```shell
 $ cargo doc --open
+```
+
+## Examples
+ 
+Run the following code to run examples.
+
+```shell
+$ cargo run --example <FILE_NAME> [-- <ARGUMENTS>]
 ```
 
 ## References

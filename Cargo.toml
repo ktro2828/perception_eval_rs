@@ -11,6 +11,7 @@ license = "MIT"
 
 [dependencies]
 chrono = { version = "0.4.24", features = ["serde"] }
+clap = { version = "4.2.7", features = ["derive"] }
 hex = "0.4.3"
 image = "0.24.6"
 itertools = "0.10.5"

@@ -1,6 +1,7 @@
 use nalgebra::SMatrix;
 
 use crate::{
+    frame_id::FrameID,
     label::Label,
     point::{distance_points, distance_points_bev},
 };
@@ -17,6 +18,7 @@ pub struct ObjectState {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DynamicObject {
+    pub frame_id: FrameID,
     pub position: [f64; 3],
     pub orientation: [f64; 4],
     pub size: [f64; 3],

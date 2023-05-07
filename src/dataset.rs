@@ -21,11 +21,9 @@ pub fn load_dataset(
     data_root: PathBuf,
     evaluation_task: &EvaluationTask,
     frame_id: &FrameID,
-    load_raw_data: &bool,
 ) -> NuScenesResult<Vec<FrameGroundTruth>> {
     log::info!(
-        "config: load_raw_data: {}, evaluation_task: {}, frame_id: {}",
-        load_raw_data,
+        "config: evaluation_task: {}, frame_id: {}",
         evaluation_task,
         frame_id,
     );
@@ -33,8 +31,8 @@ pub fn load_dataset(
     let nusc = NuScenes::load(version, data_root)?;
     let mut datasets: Vec<FrameGroundTruth> = Vec::new();
     for sample in nusc.sample_iter() {
-        let frame = sample_to_frame(&nusc, &sample, evaluation_task, frame_id, load_raw_data);
-        datasets.push(frame.unwrap());
+        let frame = sample_to_frame(&nusc, &sample, frame_id).unwrap();
+        datasets.push(frame);
     }
     Ok(datasets)
 }
@@ -42,15 +40,12 @@ pub fn load_dataset(
 fn sample_to_frame(
     nusc: &NuScenes,
     sample: &WithDataset<SampleInternal>,
-    evaluation_task: &EvaluationTask,
     frame_id: &FrameID,
-    load_raw_data: &bool,
 ) -> LabelResult<FrameGroundTruth> {
     let mut objects: Vec<DynamicObject> = Vec::new();
 
     // TODO
     // === update objects container ===
-    // DO SOMETHING
     let label_converter = LabelConverter::new(Some("autoware"))?;
     for sample_annotation in sample.sample_annotation_iter() {
         let instance = nusc.instance_map[&sample_annotation.instance_token].clone();
@@ -58,13 +53,14 @@ fn sample_to_frame(
             .convert(&nusc.category_map[&instance.category_token].clone().name)
             .unwrap();
         let object = DynamicObject {
+            frame_id: frame_id.clone(),
             position: sample_annotation.translation,
             orientation: sample_annotation.rotation,
             size: sample_annotation.size,
             confidence: 1.0,
             label: label,
             velocity: None,
-            uuid: None,
+            uuid: Some(sample_annotation.instance_token.to_string()),
         };
         objects.push(object);
     }

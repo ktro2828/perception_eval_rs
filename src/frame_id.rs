@@ -12,7 +12,7 @@ pub enum FrameIdError {
     ValueError(String),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum FrameID {
     // 3D
     BaseLink,

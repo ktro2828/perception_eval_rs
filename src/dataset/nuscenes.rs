@@ -80,9 +80,7 @@ impl NuScenes {
         P: AsRef<Path>,
     {
         let dataset_dir = dir.as_ref();
-
-        let meta_dir_name = format!("v{}-train", version.as_ref());
-        let meta_dir = dataset_dir.join(meta_dir_name);
+        let meta_dir = dataset_dir.join(version.as_ref());
 
         // load JSON files
         let attribute_list: Vec<Attribute> = {
@@ -694,7 +692,7 @@ impl NuScenes {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum LoadedSampleData {
     PointCloud(PointCloudMatrix),
     Image(DynamicImage),
