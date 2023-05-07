@@ -25,6 +25,14 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 | Detection2D | mAP                | 2D detection         | :x:                |
 | Tracking2D  | CLEAR              | 2D tracking          | :x:                |
 
+## Documents
+
+Run the following code, to see the document.
+
+```
+$ cargo doc --open
+```
+
 ## References
 
 - [jerry73204/nuscenes-data-rs](https://github.com/jerry73204/nuscenes-data-rs)
