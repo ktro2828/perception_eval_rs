@@ -1,6 +1,7 @@
 {
   "words": [
     "appender",
+    "autoware",
     "chrono",
     "datetime",
     "fileformat",
@@ -11,6 +12,8 @@
     "nuimages",
     "nusc",
     "nuscenes",
+    "powi",
+    "powf",
     "thiserror"
   ]
 }
