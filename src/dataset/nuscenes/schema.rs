@@ -117,7 +117,7 @@ pub struct Instance {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Log {
     pub token: LongToken,
-    pub date_captured: NaiveDate,
+    pub date_captured: Option<NaiveDate>,
     pub location: String,
     pub vehicle: String,
     #[serde(with = "logfile_serde")]
