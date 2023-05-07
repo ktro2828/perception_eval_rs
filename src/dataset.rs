@@ -1,7 +1,12 @@
 pub mod nuscenes;
 
-use self::nuscenes::{error::NuScenesResult, schema::Sample, NuScenes};
-use crate::{evaluation_task::EvaluationTask, frame_id::FrameID, object::object3d::DynamicObject};
+use self::nuscenes::{error::NuScenesResult, internal::SampleInternal, NuScenes, WithDataset};
+use crate::{
+    evaluation_task::EvaluationTask,
+    frame_id::FrameID,
+    label::{LabelConverter, LabelResult},
+    object::object3d::DynamicObject,
+};
 use chrono::naive::NaiveDateTime;
 use std::path::PathBuf;
 
@@ -14,9 +19,9 @@ pub struct FrameGroundTruth {
 pub fn load_dataset(
     version: String,
     data_root: PathBuf,
-    evaluation_task: EvaluationTask,
-    frame_id: FrameID,
-    load_raw_data: bool,
+    evaluation_task: &EvaluationTask,
+    frame_id: &FrameID,
+    load_raw_data: &bool,
 ) -> NuScenesResult<Vec<FrameGroundTruth>> {
     log::info!(
         "config: load_raw_data: {}, evaluation_task: {}, frame_id: {}",
@@ -28,47 +33,60 @@ pub fn load_dataset(
     let nusc = NuScenes::load(version, data_root)?;
     let mut datasets: Vec<FrameGroundTruth> = Vec::new();
     for sample in nusc.sample_iter() {
-        datasets.push(sample_to_frame(
-            nusc,
-            sample,
-            evaluation_task,
-            frame_id,
-            load_raw_data,
-        ));
+        let frame = sample_to_frame(&nusc, &sample, evaluation_task, frame_id, load_raw_data);
+        datasets.push(frame.unwrap());
     }
     Ok(datasets)
 }
 
 fn sample_to_frame(
-    nusc: NuScenes,
-    sample: Sample,
-    evaluation_task: EvaluationTask,
-    frame_id: FrameID,
-    load_raw_data: bool,
-) -> FrameGroundTruth {
+    nusc: &NuScenes,
+    sample: &WithDataset<SampleInternal>,
+    evaluation_task: &EvaluationTask,
+    frame_id: &FrameID,
+    load_raw_data: &bool,
+) -> LabelResult<FrameGroundTruth> {
     let mut objects: Vec<DynamicObject> = Vec::new();
 
     // TODO
     // === update objects container ===
     // DO SOMETHING
+    let label_converter = LabelConverter::new(Some("autoware"))?;
+    for sample_annotation in sample.sample_annotation_iter() {
+        let instance = nusc.instance_map[&sample_annotation.instance_token].clone();
+        let label = label_converter
+            .convert(&nusc.category_map[&instance.category_token].clone().name)
+            .unwrap();
+        let object = DynamicObject {
+            position: sample_annotation.translation,
+            orientation: sample_annotation.rotation,
+            size: sample_annotation.size,
+            confidence: 1.0,
+            label: label,
+            velocity: None,
+            uuid: None,
+        };
+        objects.push(object);
+    }
 
-    FrameGroundTruth {
+    let ret = FrameGroundTruth {
         timestamp: sample.timestamp,
         objects: objects,
-    }
+    };
+    Ok(ret)
 }
 
 pub fn get_current_frame(
     frame_ground_truths: &Vec<FrameGroundTruth>,
     timestamp: &NaiveDateTime,
 ) -> Option<FrameGroundTruth> {
-    const time_threshold: i64 = 75; // [ms]
+    const TIME_THRESHOLD: i64 = 75; // [ms]
 
     // TODO: update timestamp computation
     let target_time = timestamp.timestamp_millis();
     let (min_index, min_diff_time) = frame_ground_truths.iter().enumerate().fold(
         (usize::MAX, i64::MAX),
-        |(a_idx, a), (b_idx, &b)| {
+        |(a_idx, a), (b_idx, b)| {
             let diff = (b.timestamp.timestamp_millis() - target_time).abs();
             if diff < a {
                 (b_idx, diff)
@@ -78,14 +96,14 @@ pub fn get_current_frame(
         },
     );
 
-    match min_diff_time < time_threshold {
-        true => Some(frame_ground_truths[min_index]),
+    match min_diff_time < TIME_THRESHOLD {
+        true => Some(frame_ground_truths[min_index].to_owned()),
         false => {
             log::warn!(
                 "Could not find corresponding FrameGroundTruth for timestamp: {}, because {} [ms] > {} [ms]",
                 timestamp,
                 min_diff_time,
-                time_threshold
+                TIME_THRESHOLD
             );
             None
         }

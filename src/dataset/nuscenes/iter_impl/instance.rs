@@ -1,4 +1,4 @@
-use crate::dataset::nuscenes::{
+use super::super::{
     internal::InstanceInternal,
     iter::Iter,
     schema::{Category, LongToken, SampleAnnotation},
@@ -8,7 +8,7 @@ use std::slice::Iter as SliceIter;
 
 impl<'a> WithDataset<'a, InstanceInternal> {
     pub fn category(&self) -> WithDataset<'a, Category> {
-        self.refer(&self.dataset.categories[&self.inner.category_token])
+        self.refer(&self.dataset.category_map[&self.inner.category_token])
     }
 
     pub fn sample_annotation_iter(&self) -> Iter<'a, SampleAnnotation, SliceIter<'a, LongToken>> {
@@ -25,6 +25,6 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         self.tokens_iter
             .next()
-            .map(|token| self.refer(&self.dataset.instances[&token]))
+            .map(|token| self.refer(&self.dataset.instance_map[&token]))
     }
 }

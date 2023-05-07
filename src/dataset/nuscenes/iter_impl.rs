@@ -6,3 +6,8 @@ pub mod instance;
 pub mod log;
 pub mod map;
 pub mod sample;
+pub mod sample_annotation;
+pub mod sample_data;
+pub mod scene;
+pub mod sensor;
+pub mod visibility;

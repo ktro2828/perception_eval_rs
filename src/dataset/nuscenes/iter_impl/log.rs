@@ -1,4 +1,4 @@
-use crate::dataset::nuscenes::{
+use super::super::{
     iter::Iter,
     schema::{Log, LongToken},
     WithDataset,
@@ -10,7 +10,7 @@ impl<'a> WithDataset<'a, Log> {
         self.inner
             .logfile
             .as_ref()
-            .map(|path| File::open(self.dataset.data_root.join(path)))
+            .map(|path| File::open(self.dataset.dataset_dir.join(path)))
             .transpose()
     }
 }
@@ -24,6 +24,6 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         self.tokens_iter
             .next()
-            .map(|token| self.refer(&self.dataset.logs[&token]))
+            .map(|token| self.refer(&self.dataset.log_map[&token]))
     }
 }

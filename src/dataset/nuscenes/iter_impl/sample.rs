@@ -1,4 +1,4 @@
-use crate::dataset::nuscenes::{
+use super::super::{
     internal::{SampleInternal, SceneInternal},
     iter::Iter,
     schema::{LongToken, SampleAnnotation, SampleData},
@@ -16,20 +16,33 @@ impl<'a> WithDataset<'a, SampleInternal> {
     }
 
     pub fn scene(&self) -> WithDataset<'a, SceneInternal> {
-        self.refer(&self.dataset.scenes[&self.inner.scene_token])
+        self.refer(&self.dataset.scene_map[&self.inner.scene_token])
     }
 
     pub fn prev(&self) -> Option<WithDataset<'a, SampleInternal>> {
         self.inner
             .prev
             .as_ref()
-            .map(|token| self.refer(&self.dataset.samples[token]))
+            .map(|token| self.refer(&self.dataset.sample_map[token]))
     }
 
     pub fn next(&self) -> Option<WithDataset<'a, SampleInternal>> {
         self.inner
             .next
             .as_ref()
-            .map(|token| self.refer(self.dataset.samples[token]))
+            .map(|token| self.refer(&self.dataset.sample_map[token]))
+    }
+}
+
+impl<'a, It> Iterator for Iter<'a, SampleInternal, It>
+where
+    It: Iterator<Item = &'a LongToken>,
+{
+    type Item = WithDataset<'a, SampleInternal>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.tokens_iter
+            .next()
+            .map(|token| self.refer(&self.dataset.sample_map[&token]))
     }
 }

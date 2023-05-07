@@ -1,4 +1,4 @@
-use crate::dataset::nuscenes::{
+use super::super::{
     iter::Iter,
     schema::{CalibratedSensor, LongToken, Sensor},
     WithDataset,
@@ -6,7 +6,7 @@ use crate::dataset::nuscenes::{
 
 impl<'a> WithDataset<'a, CalibratedSensor> {
     pub fn sensor(&self) -> WithDataset<'a, Sensor> {
-        self.refer(&self.dataset.sensors[&self.inner.sensor_token])
+        self.refer(&self.dataset.sensor_map[&self.inner.sensor_token])
     }
 }
 
@@ -19,6 +19,6 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         self.tokens_iter
             .next()
-            .map(|token| self.refer(&self.dataset.calibrated_sensors[&token]))
+            .map(|token| self.refer(&self.dataset.calibrated_sensor_map[&token]))
     }
 }

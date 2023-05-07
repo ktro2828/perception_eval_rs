@@ -39,9 +39,17 @@ pub struct LabelConverter<'a> {
 }
 
 impl<'a> LabelConverter<'a> {
-    pub fn new(label_prefix: &str) -> LabelResult<Self> {
+    pub fn new(label_prefix: Option<&str>) -> LabelResult<Self> {
         let mut pairs = HashMap::new();
-        match label_prefix {
+
+        let prefix = {
+            match label_prefix {
+                Some(value) => value,
+                None => "autoware",
+            }
+        };
+
+        match prefix {
             "autoware" => {
                 pairs.insert("car", Label::Car);
                 pairs.insert("truck", Label::Truck);
@@ -52,21 +60,28 @@ impl<'a> LabelConverter<'a> {
                 pairs.insert("animal", Label::Animal);
                 pairs.insert("unknown", Label::Unknown);
             }
-            _ => Err(LabelError::ValueError(label_prefix.to_string()))?,
+            _ => Err(LabelError::ValueError(prefix.to_string()))?,
         }
         let ret = Self { pairs: pairs };
         Ok(ret)
     }
 
-    pub fn convert(&self, name: &str) -> Label {
-        self.pairs[name].clone()
+    pub fn convert(&self, name: &str) -> LabelResult<Label> {
+        match self.pairs.contains_key(name) {
+            true => Ok(self.pairs[name].clone()),
+            false => Err(LabelError::ValueError(name.to_string())),
+        }
     }
 }
 
-pub fn convert_labels(target_labels: Vec<&str>, converter: &LabelConverter) -> Vec<Label> {
+pub fn convert_labels(
+    target_labels: Vec<&str>,
+    converter: &LabelConverter,
+) -> LabelResult<Vec<Label>> {
     let mut ret = Vec::new();
     for name in target_labels {
-        ret.push(converter.convert(name))
+        let label = converter.convert(name)?;
+        ret.push(label);
     }
-    ret
+    Ok(ret)
 }

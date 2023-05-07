@@ -1,4 +1,4 @@
-use crate::dataset::nuscenes::{
+use super::super::{
     iter::Iter,
     schema::{Attribute, LongToken},
     WithDataset,
@@ -13,6 +13,6 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         self.tokens_iter
             .next()
-            .map(|token| self.refer(&self.dataset.attributes[&token]))
+            .map(|token| self.refer(&self.dataset.attribute_map[&token]))
     }
 }

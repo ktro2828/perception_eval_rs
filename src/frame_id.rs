@@ -1,5 +1,16 @@
 use std::fmt::{Display, Formatter, Result as FormatResult};
 use std::str::FromStr;
+use thiserror::Error as ThisError;
+
+pub type FrameIdResult<T> = Result<T, FrameIdError>;
+
+#[derive(Debug, ThisError)]
+pub enum FrameIdError {
+    #[error("internal error")]
+    InternalError,
+    #[error("value error: {0}")]
+    ValueError(String),
+}
 
 #[derive(Debug, Clone)]
 pub enum FrameID {
@@ -25,9 +36,9 @@ impl Display for FrameID {
 }
 
 impl FromStr for FrameID {
-    type Err = ();
+    type Err = FrameIdError;
 
-    fn from_str(input: &str) -> Result<Self, Self::Err> {
+    fn from_str(input: &str) -> FrameIdResult<Self> {
         match input {
             "BaseLink" | "base_link" => Ok(FrameID::BaseLink),
             "Map" | "map" => Ok(FrameID::Map),
@@ -39,7 +50,7 @@ impl FromStr for FrameID {
             "CamFrontRight" | "cam_front_right" => Ok(FrameID::CamFrontRight),
             "CamTrafficLightNear" | "cam_traffic_light_near" => Ok(FrameID::CamTrafficLightNear),
             "CamTrafficLightFar" | "cam_traffic_light_far" => Ok(FrameID::CamTrafficLightFar),
-            _ => Err(()),
+            _ => Err(FrameIdError::ValueError(input.to_string())),
         }
     }
 }

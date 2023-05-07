@@ -4,213 +4,479 @@ pub mod iter;
 pub mod iter_impl;
 pub mod schema;
 
-use error::{NuScenesError, NuScenesResult};
+use self::{
+    error::{NuScenesError, NuScenesResult},
+    internal::{InstanceInternal, SampleInternal, SceneInternal},
+    iter::Iter,
+    schema::{
+        Attribute, CalibratedSensor, Category, EgoPose, Instance, Log, LongToken, Map, Sample,
+        SampleAnnotation, SampleData, Scene, Sensor, ShortToken, Visibility,
+    },
+};
+
 use image::DynamicImage;
-use iter::Iter;
 use itertools::Itertools;
 use nalgebra::{Dyn, Matrix, VecStorage, U5};
-use schema::{
-    Attribute, CalibratedSensor, Category, EgoPose, Instance, Log, LongToken, Map, Sample,
-    SampleAnnotation, SampleData, Scene, Sensor, ShortToken, Visibility,
-};
 use serde::de::DeserializeOwned;
 use std::{
     collections::{hash_map::Keys as HashMapKeys, HashMap},
     fs::File,
     io::BufReader,
     marker::PhantomData,
+    ops::Deref,
     path::{Path, PathBuf},
     slice::Iter as SliceIter,
 };
 
-use self::internal::{InstanceInternal, SampleInternal, SceneInternal};
-
 pub type PointCloudMatrix = Matrix<f32, Dyn, U5, VecStorage<f32, Dyn, U5>>;
-
-#[derive(Clone)]
-pub enum RawData {
-    PointCloud(PointCloudMatrix),
-    Image(DynamicImage),
-}
 
 #[derive(Debug, Clone)]
 pub struct NuScenes {
-    pub(super) version: String,
-    pub(super) data_root: PathBuf,
-    pub(super) attributes: HashMap<LongToken, Attribute>,
-    pub(super) calibrated_sensors: HashMap<LongToken, CalibratedSensor>,
-    pub(super) categories: HashMap<LongToken, Category>,
-    pub(super) ego_poses: HashMap<LongToken, EgoPose>,
-    pub(super) instances: HashMap<LongToken, Instance>,
-    pub(super) logs: HashMap<LongToken, Log>,
-    pub(super) maps: HashMap<ShortToken, Map>,
-    pub(super) scenes: HashMap<LongToken, Scene>,
-    pub(super) samples: HashMap<LongToken, Sample>,
-    pub(super) sample_annotations: HashMap<LongToken, SampleAnnotation>,
-    pub(super) sample_data: HashMap<LongToken, SampleData>,
-    pub(super) sensors: HashMap<LongToken, Sensor>,
-    pub(super) visibilities: HashMap<LongToken, Visibility>,
-    pub(super) sorted_ego_pose_tokens: Vec<LongToken>,
-    pub(super) sorted_sample_tokens: Vec<LongToken>,
-    pub(super) sorted_sample_data_tokens: Vec<LongToken>,
-    pub(super) sorted_scene_tokens: Vec<LongToken>,
+    pub(crate) version: String,
+    pub(crate) dataset_dir: PathBuf,
+    pub(crate) attribute_map: HashMap<LongToken, Attribute>,
+    pub(crate) calibrated_sensor_map: HashMap<LongToken, CalibratedSensor>,
+    pub(crate) category_map: HashMap<LongToken, Category>,
+    pub(crate) ego_pose_map: HashMap<LongToken, EgoPose>,
+    pub(crate) instance_map: HashMap<LongToken, InstanceInternal>,
+    pub(crate) log_map: HashMap<LongToken, Log>,
+    pub(crate) map_map: HashMap<ShortToken, Map>,
+    pub(crate) scene_map: HashMap<LongToken, SceneInternal>,
+    pub(crate) sample_map: HashMap<LongToken, SampleInternal>,
+    pub(crate) sample_annotation_map: HashMap<LongToken, SampleAnnotation>,
+    pub(crate) sample_data_map: HashMap<LongToken, SampleData>,
+    pub(crate) sensor_map: HashMap<LongToken, Sensor>,
+    pub(crate) visibility_map: HashMap<String, Visibility>,
+    pub(crate) sorted_ego_pose_tokens: Vec<LongToken>,
+    pub(crate) sorted_sample_tokens: Vec<LongToken>,
+    pub(crate) sorted_sample_data_tokens: Vec<LongToken>,
+    pub(crate) sorted_scene_tokens: Vec<LongToken>,
 }
 
 impl NuScenes {
-    // access to the properties
+    /// Gets version of the dataset.
     pub fn version(&self) -> &str {
         &self.version
     }
-    pub fn data_root(&self) -> &Path {
-        &self.data_root
+
+    /// Gets the directory of dataset.
+    pub fn dir(&self) -> &Path {
+        &self.dataset_dir
     }
 
-    pub fn load<S, P>(version: S, data_root: P) -> NuScenesResult<Self>
+    /// Load the dataset directory.
+    ///
+    /// ```rust
+    /// use nuscenes::NuScenes;
+    ///
+    /// fn main() -> NuscenesResult<()> {
+    ///     let dataset = NuScenesDataset::load("1.02", "/path/to/your/dataset")?;
+    ///     OK(())
+    /// }
+    /// ```
+    pub fn load<S, P>(version: S, dir: P) -> NuScenesResult<Self>
     where
         S: AsRef<str>,
         P: AsRef<Path>,
     {
-        let dataset_dir: &Path = data_root.as_ref();
-        let meta_dir: PathBuf = dataset_dir.join(version.as_ref());
+        let dataset_dir = dir.as_ref();
 
-        // load JSON
+        let meta_dir_name = format!("v{}-train", version.as_ref());
+        let meta_dir = dataset_dir.join(meta_dir_name);
+
+        // load JSON files
         let attribute_list: Vec<Attribute> = {
-            let attribute_path: PathBuf = meta_dir.join("attribute.json");
+            let attribute_path = meta_dir.join("attribute.json");
             load_json(attribute_path)?
         };
-
         let calibrated_sensor_list: Vec<CalibratedSensor> = {
-            let calibrated_sensor_path: PathBuf = meta_dir.join("calibrated_sensor.json");
+            let calibrated_sensor_path = meta_dir.join("calibrated_sensor.json");
             load_json(calibrated_sensor_path)?
         };
-
         let category_list: Vec<Category> = {
-            let category_path: PathBuf = meta_dir.join("category.json");
+            let category_path = meta_dir.join("category.json");
             load_json(category_path)?
         };
-
         let ego_pose_list: Vec<EgoPose> = {
-            let ego_pose_path: PathBuf = meta_dir.join("ego_pose.json");
+            let ego_pose_path = meta_dir.join("ego_pose.json");
             load_json(ego_pose_path)?
         };
-
         let instance_list: Vec<Instance> = {
-            let instance_path: PathBuf = meta_dir.join("instance.json");
+            let instance_path = meta_dir.join("instance.json");
             load_json(instance_path)?
         };
-
         let log_list: Vec<Log> = {
-            let log_path: PathBuf = meta_dir.join("log.json");
+            let log_path = meta_dir.join("log.json");
             load_json(log_path)?
         };
-
         let map_list: Vec<Map> = {
-            let map_path: PathBuf = meta_dir.join("map.json");
+            let map_path = meta_dir.join("map.json");
             load_json(map_path)?
         };
-
         let sample_list: Vec<Sample> = {
-            let sample_path: PathBuf = meta_dir.join("sample.json");
+            let sample_path = meta_dir.join("sample.json");
             load_json(sample_path)?
         };
-
         let sample_annotation_list: Vec<SampleAnnotation> = {
-            let sample_annotation_path: PathBuf = meta_dir.join("sample_annotation.json");
+            let sample_annotation_path = meta_dir.join("sample_annotation.json");
             load_json(sample_annotation_path)?
         };
-
         let sample_data_list: Vec<SampleData> = {
-            let sample_data_path: PathBuf = meta_dir.join("sample_data.json");
+            let sample_data_path = meta_dir.join("sample_data.json");
             load_json(sample_data_path)?
         };
-
         let scene_list: Vec<Scene> = {
-            let scene_path: PathBuf = meta_dir.join("scene.json");
+            let scene_path = meta_dir.join("scene.json");
             load_json(scene_path)?
         };
-
         let sensor_list: Vec<Sensor> = {
-            let sensor_path: PathBuf = meta_dir.join("sensor.json");
+            let sensor_path = meta_dir.join("sensor.json");
             load_json(sensor_path)?
         };
-
         let visibility_list: Vec<Visibility> = {
-            let visibility_path: PathBuf = meta_dir.join("visibility.json");
+            let visibility_path = meta_dir.join("visibility.json");
             load_json(visibility_path)?
         };
 
         // index items by tokens
-        let attributes: HashMap<LongToken, Attribute> = attribute_list
+        let attribute_map = attribute_list
             .into_iter()
             .map(|attribute| (attribute.token.clone(), attribute))
             .collect::<HashMap<_, _>>();
-
-        let calibrated_sensors: HashMap<LongToken, CalibratedSensor> = calibrated_sensor_list
+        let calibrated_sensor_map = calibrated_sensor_list
             .into_iter()
             .map(|calibrated_sensor| (calibrated_sensor.token.clone(), calibrated_sensor))
             .collect::<HashMap<_, _>>();
-
-        let categories: HashMap<LongToken, Category> = category_list
+        let category_map = category_list
             .into_iter()
             .map(|category| (category.token.clone(), category))
             .collect::<HashMap<_, _>>();
-
-        let ego_poses: HashMap<LongToken, EgoPose> = ego_pose_list
+        let ego_pose_map = ego_pose_list
             .into_iter()
-            .map(|ego_pose| (ego_pose.token.clone(), ego_pose))
+            .map(|ego_pos| (ego_pos.token.clone(), ego_pos))
             .collect::<HashMap<_, _>>();
-
-        let instances: HashMap<LongToken, Instance> = instance_list
+        let instance_map = instance_list
             .into_iter()
             .map(|instance| (instance.token.clone(), instance))
             .collect::<HashMap<_, _>>();
-
-        let logs: HashMap<LongToken, Log> = log_list
+        let log_map = log_list
             .into_iter()
             .map(|log| (log.token.clone(), log))
             .collect::<HashMap<_, _>>();
-
-        let maps: HashMap<ShortToken, Map> = map_list
+        let map_map = map_list
             .into_iter()
             .map(|map| (map.token.clone(), map))
             .collect::<HashMap<_, _>>();
-
-        let scenes: HashMap<LongToken, Scene> = scene_list
-            .into_iter()
-            .map(|scene| (scene.token.clone(), scene))
-            .collect::<HashMap<_, _>>();
-
-        let samples: HashMap<LongToken, Sample> = sample_list
+        let sample_annotation_map = sample_annotation_list
             .into_iter()
             .map(|sample| (sample.token.clone(), sample))
             .collect::<HashMap<_, _>>();
-
-        let sample_annotations: HashMap<LongToken, SampleAnnotation> = sample_annotation_list
+        let sample_data_map = sample_data_list
             .into_iter()
-            .map(|sample_annotation| (sample_annotation.token.clone(), sample_annotation))
+            .map(|sample| (sample.token.clone(), sample))
             .collect::<HashMap<_, _>>();
-
-        let sample_data: HashMap<LongToken, SampleData> = sample_data_list
+        let sample_map = sample_list
             .into_iter()
-            .map(|sample_data| (sample_data.token.clone(), sample_data))
+            .map(|sample| (sample.token.clone(), sample))
             .collect::<HashMap<_, _>>();
-
-        let sensors: HashMap<LongToken, Sensor> = sensor_list
+        let scene_map = scene_list
+            .into_iter()
+            .map(|scene| (scene.token.clone(), scene))
+            .collect::<HashMap<_, _>>();
+        let sensor_map = sensor_list
             .into_iter()
             .map(|sensor| (sensor.token.clone(), sensor))
             .collect::<HashMap<_, _>>();
-
-        let visibilities: HashMap<LongToken, Visibility> = visibility_list
+        let visibility_map = visibility_list
             .into_iter()
             .map(|visibility| (visibility.token.clone(), visibility))
             .collect::<HashMap<_, _>>();
 
-        // TODO: validate integrity
-        //
-        // --- Do something ---
-        //
+        // check calibrated sensor integrity
+        for (_, calibrated_sensor) in calibrated_sensor_map.iter() {
+            if !sensor_map.contains_key(&calibrated_sensor.sensor_token) {
+                let msg = format!(
+                    "the token {} does not refer to any sensor",
+                    calibrated_sensor.sensor_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+        }
 
-        let mut sample_to_annotation_groups = sample_annotations
+        // check instance integrity
+        for (instance_token, instance) in instance_map.iter() {
+            if !sample_annotation_map.contains_key(&instance.first_annotation_token) {
+                let msg = format!(
+                    "the token {} does not refer to any sample annotation",
+                    instance.first_annotation_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            if !sample_annotation_map.contains_key(&instance.last_annotation_token) {
+                let msg = format!(
+                    "the token {} does not refer to any sample annotation",
+                    instance.last_annotation_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            if !category_map.contains_key(&instance.category_token) {
+                let msg = format!(
+                    "the token {} does not refer to any sample category",
+                    instance.category_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            let mut annotation_token = &instance.first_annotation_token;
+            let mut prev_annotation_token = None;
+            let mut count = 0;
+
+            loop {
+                let annotation = match sample_annotation_map.get(annotation_token) {
+                    Some(annotation) => annotation,
+                    None => {
+                        match prev_annotation_token {
+                            Some(prev) => return Err(NuScenesError::CorruptedDataset(format!("the sample_annotation with token {} points to next token {} that does not exist", prev, annotation_token))),
+                            None => return Err(NuScenesError::CorruptedDataset(format!("the instance with token {} points to first_annotation_token {} that does not exist", instance_token, annotation_token))),
+                        }
+                    }
+                };
+
+                if prev_annotation_token != annotation.prev.as_ref() {
+                    let msg = format!(
+                        "the prev field is not correct in sample annotation with token {}",
+                        annotation_token
+                    );
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+                count += 1;
+
+                prev_annotation_token = Some(annotation_token);
+                annotation_token = match &annotation.next {
+                    Some(next) => next,
+                    None => {
+                        if &instance.last_annotation_token != annotation_token {
+                            let msg = format!("the last_annotation_token is not correct in instance with token {}",
+                                                  instance_token);
+                            return Err(NuScenesError::CorruptedDataset(msg));
+                        }
+
+                        if count != instance.nbr_annotations {
+                            let msg = format!(
+                                "the nbr_annotations is not correct in instance with token {}",
+                                instance_token
+                            );
+                            return Err(NuScenesError::CorruptedDataset(msg));
+                        }
+                        break;
+                    }
+                };
+            }
+        }
+
+        // check map integrity
+        for (_, map) in map_map.iter() {
+            for token in map.log_tokens.iter() {
+                if !log_map.contains_key(token) {
+                    let msg = format!("the token {} does not refer to any log", token);
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+            }
+        }
+
+        // check scene integrity
+        for (scene_token, scene) in scene_map.iter() {
+            if !log_map.contains_key(&scene.log_token) {
+                let msg = format!("the token {} does not refer to any log", scene.log_token);
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            if !sample_map.contains_key(&scene.first_sample_token) {
+                let msg = format!(
+                    "the token {} does not refer to any sample",
+                    scene.first_sample_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            if !sample_map.contains_key(&scene.last_sample_token) {
+                let msg = format!(
+                    "the token {} does not refer to any sample",
+                    scene.last_sample_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            let mut prev_sample_token = None;
+            let mut sample_token = &scene.first_sample_token;
+            let mut count = 0;
+
+            loop {
+                let sample = match sample_map.get(sample_token) {
+                    Some(sample) => sample,
+                    None => {
+                        match prev_sample_token {
+                            Some(prev) => return Err(NuScenesError::CorruptedDataset(format!("the sample with token {} points to a next token {} that does not exist", prev, sample_token))),
+                            None => return Err(NuScenesError::CorruptedDataset(format!("the scene with token {} points to first_sample_token {} that does not exist", scene_token, sample_token))),
+                        }
+                    }
+                };
+                if prev_sample_token != sample.prev.as_ref() {
+                    let msg = format!(
+                        "the prev field in sample with token {} is not correct",
+                        sample_token
+                    );
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+                prev_sample_token = Some(sample_token);
+                count += 1;
+
+                sample_token = match &sample.next {
+                    Some(next) => next,
+                    None => {
+                        if sample_token != &scene.last_sample_token {
+                            let msg = format!(
+                                "the last_sample_token is not correct in scene with token {}",
+                                scene_token
+                            );
+                            return Err(NuScenesError::CorruptedDataset(msg));
+                        }
+                        if count != scene.nbr_samples {
+                            let msg = format!(
+                                "the nbr_samples in scene with token {} is not correct",
+                                scene_token
+                            );
+                            return Err(NuScenesError::CorruptedDataset(msg));
+                        }
+                        break;
+                    }
+                };
+            }
+        }
+
+        // check sample integrity
+        for (_, sample) in sample_map.iter() {
+            if !scene_map.contains_key(&sample.scene_token) {
+                let msg = format!(
+                    "the token {} does not refer to any scene",
+                    sample.scene_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            if let Some(token) = &sample.prev {
+                if !sample_map.contains_key(token) {
+                    let msg = format!("the token {} does not refer to any sample", token);
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+            }
+
+            if let Some(token) = &sample.next {
+                if !sample_map.contains_key(token) {
+                    let msg = format!("the token {} does not refer to any sample", token);
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+            }
+        }
+
+        // check sample annotation integrity
+        for (_, sample_annotation) in sample_annotation_map.iter() {
+            if !sample_map.contains_key(&sample_annotation.sample_token) {
+                let msg = format!(
+                    "the token {} does not refer to any sample",
+                    sample_annotation.sample_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            if !instance_map.contains_key(&sample_annotation.instance_token) {
+                let msg = format!(
+                    "the token {} does not refer to any instance",
+                    sample_annotation.instance_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            for token in sample_annotation.attribute_tokens.iter() {
+                if !attribute_map.contains_key(token) {
+                    let msg = format!("the token {} does not refer to any attribute", token);
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+            }
+
+            if let Some(token) = &sample_annotation.visibility_token {
+                if !visibility_map.contains_key(token) {
+                    let msg = format!("the token {} does not refer to any visibility", token);
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+            }
+
+            if let Some(token) = &sample_annotation.prev {
+                if !sample_annotation_map.contains_key(token) {
+                    let msg = format!(
+                        "the token {} does not refer to any sample annotation",
+                        token
+                    );
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+            }
+
+            if let Some(token) = &sample_annotation.next {
+                if !sample_annotation_map.contains_key(token) {
+                    let msg = format!(
+                        "the token {} does not refer to any sample annotation",
+                        token
+                    );
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+            }
+        }
+
+        // check sample data integrity
+        for (_, sample_data) in sample_data_map.iter() {
+            if !sample_map.contains_key(&sample_data.sample_token) {
+                let msg = format!(
+                    "the token {} does not refer to any sample",
+                    sample_data.sample_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            if !ego_pose_map.contains_key(&sample_data.ego_pose_token) {
+                let msg = format!(
+                    "the token {} does not refer to any ego pose",
+                    sample_data.ego_pose_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            if !calibrated_sensor_map.contains_key(&sample_data.calibrated_sensor_token) {
+                let msg = format!(
+                    "the token {} does not refer to any calibrated sensor",
+                    sample_data.calibrated_sensor_token
+                );
+                return Err(NuScenesError::CorruptedDataset(msg));
+            }
+
+            if let Some(token) = &sample_data.prev {
+                if !sample_data_map.contains_key(token) {
+                    let msg = format!("the token {} does not refer to any sample data", token);
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+            }
+
+            if let Some(token) = &sample_data.next {
+                if !sample_data_map.contains_key(token) {
+                    let msg = format!("the token {} does not refer to any sample data", token);
+                    return Err(NuScenesError::CorruptedDataset(msg));
+                }
+            }
+        }
+
+        // keep track of relations from samples to sample annotations
+        let mut sample_to_annotation_groups = sample_annotation_map
             .iter()
             .map(|(sample_annotation_token, sample_annotation)| {
                 (
@@ -220,45 +486,48 @@ impl NuScenes {
             })
             .into_group_map();
 
-        let mut sample_to_sample_data_groups = sample_data
+        // keep track of relations from samples to sample data
+        let mut sample_to_sample_data_groups = sample_data_map
             .iter()
             .map(|(sample_data_token, sample_data)| {
                 (sample_data.sample_token.clone(), sample_data_token.clone())
             })
             .into_group_map();
 
-        let instance_internal_map = instances
+        // convert some types for ease of usage
+        let instance_internal_map = instance_map
             .into_iter()
             .map(|(instance_token, instance)| {
-                let ret = InstanceInternal::from(instance, &sample_annotations)?;
+                let ret = InstanceInternal::from(instance, &sample_annotation_map)?;
                 Ok((instance_token, ret))
             })
             .collect::<NuScenesResult<HashMap<_, _>>>()?;
 
-        let scene_internal_map = scenes
+        let scene_internal_map = scene_map
             .into_iter()
             .map(|(scene_token, scene)| {
-                let internal = SceneInternal::from(scene, &samples)?;
+                let internal = SceneInternal::from(scene, &sample_map)?;
                 Ok((scene_token, internal))
             })
             .collect::<NuScenesResult<HashMap<_, _>>>()?;
 
-        let sample_internal_map = samples
+        let sample_internal_map = sample_map
             .into_iter()
             .map(|(sample_token, sample)| {
                 let sample_data_tokens = sample_to_sample_data_groups
                     .remove(&sample_token)
-                    .ok_or(NuScenesError::InternalError)?;
+                    .ok_or(NuScenesError::InternalBug)?;
                 let annotation_tokens = sample_to_annotation_groups
                     .remove(&sample_token)
-                    .ok_or(NuScenesError::InternalError)?;
+                    .ok_or(NuScenesError::InternalBug)?;
                 let internal = SampleInternal::from(sample, annotation_tokens, sample_data_tokens);
                 Ok((sample_token, internal))
             })
             .collect::<NuScenesResult<HashMap<_, _>>>()?;
 
+        // sort ego_pose by timestamp
         let sorted_ego_pose_tokens = {
-            let mut sorted_pairs = ego_poses
+            let mut sorted_pairs = ego_pose_map
                 .iter()
                 .map(|(sample_token, sample)| (sample_token, sample.timestamp))
                 .collect::<Vec<_>>();
@@ -270,6 +539,7 @@ impl NuScenes {
                 .collect::<Vec<_>>()
         };
 
+        // sort samples by timestamp
         let sorted_sample_tokens = {
             let mut sorted_pairs = sample_internal_map
                 .iter()
@@ -283,8 +553,9 @@ impl NuScenes {
                 .collect::<Vec<_>>()
         };
 
+        // sort sample data by timestamp
         let sorted_sample_data_tokens = {
-            let mut sorted_pairs = sample_data
+            let mut sorted_pairs = sample_data_map
                 .iter()
                 .map(|(sample_token, sample)| (sample_token, sample.timestamp))
                 .collect::<Vec<_>>();
@@ -296,6 +567,7 @@ impl NuScenes {
                 .collect::<Vec<_>>()
         };
 
+        // sort scenes by timestamp
         let sorted_scene_tokens = {
             let mut sorted_pairs = scene_internal_map
                 .iter()
@@ -306,13 +578,13 @@ impl NuScenes {
                         .map(|sample_token| {
                             let sample = sample_internal_map
                                 .get(&sample_token)
-                                .ok_or(NuScenesError::InternalError)?;
+                                .ok_or(NuScenesError::InternalBug)?;
                             Ok(sample.timestamp)
                         })
                         .collect::<NuScenesResult<Vec<_>>>()?
                         .into_iter()
                         .min()
-                        .ok_or(NuScenesError::InternalError)?;
+                        .ok_or(NuScenesError::InternalBug)?;
 
                     Ok((scene_token, timestamp))
                 })
@@ -325,66 +597,64 @@ impl NuScenes {
                 .collect::<Vec<_>>()
         };
 
-        let ret: NuScenes = Self {
+        // construct result
+        let ret = Self {
             version: version.as_ref().to_owned(),
-            data_root: dataset_dir.to_owned(),
-            attributes: attributes,
-            calibrated_sensors: calibrated_sensors,
-            categories: categories,
-            ego_poses: ego_poses,
-            instances: instances,
-            logs: logs,
-            maps: maps,
-            scenes: scenes,
-            samples: samples,
-            sample_annotations: sample_annotations,
-            sample_data: sample_data,
-            sensors: sensors,
-            visibilities: visibilities,
-            sorted_ego_pose_tokens: sorted_ego_pose_tokens,
-            sorted_scene_tokens: sorted_scene_tokens,
-            sorted_sample_tokens: sorted_sample_tokens,
-            sorted_sample_data_tokens: sorted_sample_data_tokens,
+            dataset_dir: dataset_dir.to_owned(),
+            attribute_map,
+            calibrated_sensor_map,
+            category_map,
+            ego_pose_map,
+            instance_map: instance_internal_map,
+            log_map,
+            map_map,
+            sample_map: sample_internal_map,
+            sample_annotation_map,
+            sample_data_map,
+            scene_map: scene_internal_map,
+            sensor_map,
+            visibility_map,
+            sorted_ego_pose_tokens,
+            sorted_scene_tokens,
+            sorted_sample_tokens,
+            sorted_sample_data_tokens,
         };
 
         Ok(ret)
     }
 
-    // access to the iterators
     pub fn attribute_iter<'a>(
         &'a self,
     ) -> Iter<'a, Attribute, HashMapKeys<'a, LongToken, Attribute>> {
-        self.refer_iter(self.attributes.keys())
+        self.refer_iter(self.attribute_map.keys())
     }
 
     pub fn calibrated_sensor_iter<'a>(
         &'a self,
     ) -> Iter<'a, CalibratedSensor, HashMapKeys<'a, LongToken, CalibratedSensor>> {
-        self.refer_iter(self.calibrated_sensors.keys())
+        self.refer_iter(self.calibrated_sensor_map.keys())
     }
 
     pub fn category_iter<'a>(&'a self) -> Iter<'a, Category, HashMapKeys<'a, LongToken, Category>> {
-        self.refer_iter(self.categories.keys())
+        self.refer_iter(self.category_map.keys())
     }
 
     pub fn ego_pose_iter<'a>(&'a self) -> Iter<'a, EgoPose, SliceIter<'a, LongToken>> {
         self.refer_iter(self.sorted_ego_pose_tokens.iter())
     }
 
-    pub fn instance_iter<'a>(&'a self) -> Iter<'a, Instance, HashMapKeys<'a, LongToken, Instance>> {
-        self.refer_iter(self.instances.keys())
+    pub fn instance_iter<'a>(
+        &'a self,
+    ) -> Iter<'a, Instance, HashMapKeys<'a, LongToken, InstanceInternal>> {
+        self.refer_iter(self.instance_map.keys())
     }
 
     pub fn log_iter<'a>(&'a self) -> Iter<'a, Log, HashMapKeys<'a, LongToken, Log>> {
-        self.refer_iter(self.logs.keys())
+        self.refer_iter(self.log_map.keys())
     }
 
     pub fn map_iter<'a>(&'a self) -> Iter<'a, Map, HashMapKeys<'a, ShortToken, Map>> {
-        self.refer_iter(self.maps.keys())
-    }
-
-    pub fn scene_iter<'a>(&'a self) -> Iter<'a, Scene, SliceIter<'a, LongToken>> {
-        self.refer_iter(self.sorted_scene_tokens.iter())
+        self.refer_iter(self.map_map.keys())
     }
 
     pub fn sample_iter<'a>(&'a self) -> Iter<'a, SampleInternal, SliceIter<'a, LongToken>> {
@@ -394,53 +664,71 @@ impl NuScenes {
     pub fn sample_annotation_iter<'a>(
         &'a self,
     ) -> Iter<'a, SampleAnnotation, HashMapKeys<'a, LongToken, SampleAnnotation>> {
-        self.refer_iter(self.sample_annotations.keys())
+        self.refer_iter(self.sample_annotation_map.keys())
     }
 
     pub fn sample_data_iter<'a>(&'a self) -> Iter<'a, SampleData, SliceIter<'a, LongToken>> {
         self.refer_iter(self.sorted_sample_data_tokens.iter())
     }
 
+    pub fn scene_iter<'a>(&'a self) -> Iter<'a, SceneInternal, SliceIter<'a, LongToken>> {
+        self.refer_iter(self.sorted_scene_tokens.iter())
+    }
+
     pub fn sensor_iter<'a>(&'a self) -> Iter<'a, Sensor, HashMapKeys<'a, LongToken, Sensor>> {
-        self.refer_iter(self.sensors.keys())
+        self.refer_iter(self.sensor_map.keys())
     }
 
     pub fn visibility_iter<'a>(
         &'a self,
-    ) -> Iter<'a, Visibility, HashMapKeys<'a, LongToken, Visibility>> {
-        self.refer_iter(self.visibilities.keys())
+    ) -> Iter<'a, Visibility, HashMapKeys<'a, String, Visibility>> {
+        self.refer_iter(self.visibility_map.keys())
     }
 
     fn refer_iter<'a, Value, It>(&'a self, tokens_iter: It) -> Iter<'a, Value, It> {
         Iter {
             dataset: self,
-            tokens_iter: tokens_iter,
-            phantom: PhantomData,
+            tokens_iter,
+            _phantom: PhantomData,
         }
     }
 }
 
-// A wrapper struct that wraps around a base type with a reference to dataset.
+#[derive(Clone)]
+pub enum LoadedSampleData {
+    PointCloud(PointCloudMatrix),
+    Image(DynamicImage),
+}
+
+/// A wrapper struct that wraps around a base type with a reference to dataset.
 #[derive(Debug, Clone)]
 pub struct WithDataset<'a, T> {
-    pub dataset: &'a NuScenes,
-    pub inner: &'a T,
+    pub(crate) dataset: &'a NuScenes,
+    pub(crate) inner: &'a T,
 }
 
 impl<'a, T> WithDataset<'a, T> {
-    pub fn refer<S>(&self, reference: &'a S) -> WithDataset<'a, S> {
+    pub(crate) fn refer<S>(&self, referred: &'a S) -> WithDataset<'a, S> {
         WithDataset {
             dataset: self.dataset,
-            inner: reference,
+            inner: referred,
         }
     }
 
-    pub fn refer_iter<Value, It>(&self, tokens_iter: It) -> Iter<'a, Value, It> {
+    pub(crate) fn refer_iter<Value, It>(&self, tokens_iter: It) -> Iter<'a, Value, It> {
         Iter {
             dataset: self.dataset,
-            tokens_iter: tokens_iter,
-            phantom: PhantomData,
+            tokens_iter,
+            _phantom: PhantomData,
         }
+    }
+}
+
+impl<'a, T> Deref for WithDataset<'a, T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        self.inner
     }
 }
 

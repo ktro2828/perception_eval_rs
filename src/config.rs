@@ -1,4 +1,3 @@
-use crate::label::{convert_labels, LabelConverter};
 use crate::{frame_id::FrameID, label::Label};
 use std::io::Error as IoError;
 use std::path::PathBuf;
@@ -34,14 +33,6 @@ impl PerceptionEvaluationConfig {
 
     pub fn vis_dir(&self) -> PathBuf {
         self.result_dir.join("visualize")
-    }
-
-    pub fn new(
-        dataset_path: PathBuf,
-        frame_id: FrameID,
-        result_dir: PathBuf,
-        load_raw_data: bool,
-    ) -> Self {
     }
 }
 
