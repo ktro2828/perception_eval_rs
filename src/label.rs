@@ -122,7 +122,7 @@ impl<'a> LabelConverter<'a> {
 }
 
 pub fn convert_labels(
-    target_labels: Vec<&str>,
+    target_labels: &Vec<&str>,
     converter: &LabelConverter,
 ) -> LabelResult<Vec<Label>> {
     let mut ret = Vec::new();
