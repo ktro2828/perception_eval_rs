@@ -11,7 +11,7 @@ pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 pub fn configure_logger(log_dir: &Path, level: Level) -> Result<()> {
     let logfile: FileAppender = FileAppender::builder()
-        .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
+        .encoder(Box::new(PatternEncoder::new("{l} - {m}{n}\n")))
         .build(log_dir.join("output.log"))?;
 
     let level_filter: LevelFilter = match level {
