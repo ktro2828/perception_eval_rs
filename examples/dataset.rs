@@ -24,5 +24,12 @@ fn main() {
     let frame_ground_truths =
         dataset::load_dataset(version, data_root, &evaluation_task, &frame_id);
 
-    println!("Number of frames: {:?}", frame_ground_truths.unwrap().len());
+    println!(
+        "Number of frames: {:?}",
+        frame_ground_truths.as_ref().unwrap().len()
+    );
+
+    for (i, frame_gt) in frame_ground_truths.unwrap().iter().enumerate() {
+        println!("Frame [{}]: {}", i, frame_gt);
+    }
 }

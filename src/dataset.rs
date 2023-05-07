@@ -8,12 +8,24 @@ use crate::{
     object::object3d::DynamicObject,
 };
 use chrono::naive::NaiveDateTime;
+use std::fmt::{Display, Formatter, Result as FormatResult};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct FrameGroundTruth {
     timestamp: NaiveDateTime,
     objects: Vec<DynamicObject>,
+}
+
+impl Display for FrameGroundTruth {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FormatResult {
+        write!(
+            f,
+            "timestamp: {:?}, num objects: {}",
+            self.timestamp,
+            self.objects.len()
+        )
+    }
 }
 
 pub fn load_dataset(

@@ -5,6 +5,7 @@ use crate::{
     label::Label,
     point::{distance_points, distance_points_bev},
 };
+use std::fmt::{Display, Formatter, Result as FormatResult};
 
 pub type RotationMatrix<T> = SMatrix<T, 3, 3>;
 
@@ -14,6 +15,16 @@ pub struct ObjectState {
     orientation: [f64; 4],
     size: [f64; 3],
     velocity: Option<[f64; 3]>,
+}
+
+impl Display for ObjectState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FormatResult {
+        write!(
+            f,
+            "position: {:?}\norientation: {:?}\nsize: {:?}\nvelocity: {:?}",
+            self.position, self.orientation, self.size, self.velocity
+        )
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -26,6 +37,23 @@ pub struct DynamicObject {
     pub confidence: f64,
     pub label: Label,
     pub uuid: Option<String>,
+}
+
+impl Display for DynamicObject {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FormatResult {
+        write!(
+            f, 
+            "frame_id: {:?}\nposition: {:?}\norientation: {:?}\nsize: {:?}\nvelocity: {:?}\nconfidence: {}\nlabel: {:?}\nuuid: {:?}", 
+            self.frame_id, 
+            self.position, 
+            self.orientation,
+            self.size, 
+            self.velocity, 
+            self.confidence, 
+            self.label, 
+            self.uuid
+        )
+    }
 }
 
 impl DynamicObject {
