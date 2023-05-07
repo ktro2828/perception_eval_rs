@@ -227,14 +227,14 @@ pub enum FileFormat {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum VisibilityLevel {
-    #[serde(rename = "v0-40")]
-    V0_40,
-    #[serde(rename = "v40-60")]
-    V40_60,
-    #[serde(rename = "v60-80")]
-    V60_80,
-    #[serde(rename = "v80-100")]
-    V80_100,
+    #[serde(rename = "v0-40", alias = "none")]
+    None,
+    #[serde(rename = "v40-60", alias = "partial")]
+    Partial,
+    #[serde(rename = "v60-80", alias = "most")]
+    Most,
+    #[serde(rename = "v80-100", alias = "full")]
+    Full,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
