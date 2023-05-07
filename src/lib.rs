@@ -1,8 +1,11 @@
 // pub mod dataset;  // WIP
+pub mod config; // WIP
 pub mod evaluation_task;
 pub mod frame_id;
 pub mod label;
 pub mod logger;
-// pub mod matching; // WIP
+// pub mod manager; // WIP
+pub mod matching; // WIP
 pub mod object;
-// pub mod result; // WIP
+pub mod point;
+pub mod result; // WIP
