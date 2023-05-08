@@ -8,13 +8,54 @@ use crate::matching::{
 use super::matching::MatchingMethod;
 use super::object::object3d::DynamicObject;
 
+/// Struct for matching pair of estimated and ground truth objects.
+/// If ground truth object is None, it means the result is FP (=False Positive).
+///
+/// * `estimated_object`    - Estimated object.
+/// * `ground_truth_object` - Ground truth object.
 #[derive(Debug, Clone)]
 pub struct PerceptionResult {
-    estimated_object: DynamicObject,
-    ground_truth_object: Option<DynamicObject>,
+    pub estimated_object: DynamicObject,
+    pub ground_truth_object: Option<DynamicObject>,
 }
 
 impl PerceptionResult {
+    /// Generate `PerceptionResult` instance.
+    ///
+    /// * `estimated_object`    - Estimated object.
+    /// * `ground_truth_object` - Ground truth object. If FP result, set None.
+    ///
+    /// # Examples
+    /// ```
+    /// let estimation = DynamicObject {
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let ground_truth = DynamicObject {
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("100".to_string()),
+    /// };
+    ///
+    /// // Get TP or FP result
+    /// let result = PerceptionResult::new(estimation, Some(ground_truth));
+    /// // Get FP result
+    /// let fp_result = PerceptionResult::new(estimation, None);
+    /// ```
     pub fn new(
         estimated_object: DynamicObject,
         ground_truth_object: Option<DynamicObject>,
@@ -24,6 +65,41 @@ impl PerceptionResult {
             ground_truth_object: ground_truth_object,
         }
     }
+
+    /// Returns whether both estimated and ground truth object have same label.
+    /// If ground truth is None, returns false.
+    ///
+    /// # Examples
+    /// ```
+    /// let estimation = DynamicObject {
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let ground_truth = DynamicObject {
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("100".to_string()),
+    /// };
+    ///
+    /// let result = PerceptionResult::new(estimation, Some(ground_truth));
+    ///
+    /// let is_label_correct = result.is_label_correct();
+    /// assert_eq!(is_label_correct, true);
+    /// ```
     pub fn is_label_correct(&self) -> bool {
         match &self.ground_truth_object {
             Some(gt) => self.estimated_object.label == gt.label,
@@ -31,6 +107,44 @@ impl PerceptionResult {
         }
     }
 
+    /// Returns whether result is correct, it means TP (=True Positive).
+    /// Calculate score with specified matching mode, and determine whether TP is or not with
+    /// input threshold value.
+    ///
+    /// * `matching_mode`   - MatchingMode instance.
+    /// * `threshold`       - Threshold value.
+    ///
+    /// # Examples
+    /// ```
+    /// let estimation = DynamicObject {
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let ground_truth = DynamicObject {
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("100".to_string()),
+    /// };
+    ///
+    /// let result = PerceptionResult::new(estimation, Some(ground_truth));
+    ///
+    /// let is_tp = result.is_result_correct(&MatchingMode::CenterDistance, 1.0);
+    /// assert_eq!(is_tp, true);
+    /// ```
     pub fn is_result_correct(
         &self,
         matching_mode: &MatchingMode,
