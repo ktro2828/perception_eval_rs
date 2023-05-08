@@ -12,7 +12,7 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 
 | Format   | Description                                          | Support            |
 | :------- | :--------------------------------------------------- | :----------------- |
-| NuScenes | [NuScenes format](https://www.nuscenes.org/nuscenes) | :white_check_mark: |
+| NuScenes | [NuScenes format](https://www.nuscenes.org/nuscenes) | :heavy_check_mark: |
 | NuImages | [NuImages format](https://www.nuscenes.org/nuimages) | :x:                |
 
 ### Evaluation tasks
