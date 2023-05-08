@@ -1,6 +1,8 @@
 use std::vec;
 
-use crate::matching::{CenterDistanceMatching, MatchingError, MatchingMode, MatchingResult};
+use crate::matching::{
+    CenterDistanceMatching, MatchingError, MatchingMode, MatchingResult, PlaneDistanceMatching,
+};
 
 use super::matching::MatchingMethod;
 use super::object::object3d::DynamicObject;
@@ -24,12 +26,13 @@ impl PerceptionResult {
         matching_mode: &MatchingMode,
         threshold: &f64,
     ) -> MatchingResult<bool> {
-        let matching_method;
-        if *matching_mode == MatchingMode::CenterDistance {
-            matching_method = CenterDistanceMatching;
-        } else {
-            return Err(MatchingError::ValueError);
-        }
+        let matching_method: Box<dyn MatchingMethod> = {
+            match matching_mode {
+                MatchingMode::CenterDistance => Box::new(CenterDistanceMatching),
+                MatchingMode::PlaneDistance => Box::new(PlaneDistanceMatching),
+                MatchingMode::Iou2d | MatchingMode::Iou3d => Err(MatchingError::ValueError)?,
+            }
+        };
         let is_correct = {
             match &self.ground_truth_object {
                 Some(gt) => matching_method.is_better_than(&self.estimated_object, &gt, threshold),

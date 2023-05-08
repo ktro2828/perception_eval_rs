@@ -8,6 +8,8 @@ use crate::{
 use std::fmt::{Display, Formatter, Result as FormatResult};
 
 pub type RotationMatrix<T> = SMatrix<T, 3, 3>;
+type PositionMatrix = SMatrix<f64, 1, 3>;
+type CornerMatrix = SMatrix<f64, 4, 3>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ObjectState {
@@ -43,15 +45,15 @@ pub struct DynamicObject {
 impl Display for DynamicObject {
     fn fmt(&self, f: &mut Formatter<'_>) -> FormatResult {
         write!(
-            f, 
-            "frame_id: {:?}\nposition: {:?}\norientation: {:?}\nsize: {:?}\nvelocity: {:?}\nconfidence: {}\nlabel: {:?}\nuuid: {:?}", 
-            self.frame_id, 
-            self.position, 
+            f,
+            "frame_id: {:?}\nposition: {:?}\norientation: {:?}\nsize: {:?}\nvelocity: {:?}\nconfidence: {}\nlabel: {:?}\nuuid: {:?}",
+            self.frame_id,
+            self.position,
             self.orientation,
-            self.size, 
-            self.velocity, 
-            self.confidence, 
-            self.label, 
+            self.size,
+            self.velocity,
+            self.confidence,
+            self.label,
             self.uuid
         )
     }
@@ -94,14 +96,14 @@ impl DynamicObject {
     }
 
     /// Returns distance from the other point.
-    /// 
+    ///
     /// * `point`   - 3D coordinates position.
     pub fn distance_from(&self, point: &[f64; 3]) -> f64 {
         distance_points(&self.position, point)
     }
 
     /// Returns distance in BEV from the other point.
-    /// 
+    ///
     /// * `point`   - 3D coordinates position.
     pub fn distance_bev_from(&self, point: &[f64; 3]) -> f64 {
         distance_points_bev(&self.position, point)
@@ -125,16 +127,31 @@ impl DynamicObject {
 
     /// Returns footprint of object's box.
     pub fn footprint(&self) -> Vec<[f64; 3]> {
-        let mut center2corners = Vec::new();
-        center2corners.push([self.size[1] * 0.5, self.size[0] * 0.5, 0.0]);
-        center2corners.push([-self.size[1] * 0.5, self.size[0] * 0.5, 0.0]);
-        center2corners.push([-self.size[1] * 0.5, -self.size[0] * 0.5, 0.0]);
-        center2corners.push([self.size[1] * 0.5, -self.size[0] * 0.5, 0.0]);
+        let center2corners = CornerMatrix::new(
+            self.size[1] * 0.5,
+            self.size[0] * 0.5,
+            0.0,
+            self.size[1] * 0.5,
+            self.size[0] * 0.5,
+            0.0,
+            -self.size[1] * 0.5,
+            -self.size[0] * 0.5,
+            0.0,
+            self.size[1] * 0.5,
+            -self.size[0] * 0.5,
+            0.0,
+        );
 
-        let mut footprint = Vec::new();
         let rot = self.rotation_matrix();
-        for corner in center2corners {}
+        let position: SMatrix<f64, 1, 3> =
+            PositionMatrix::new(self.position[0], self.position[1], self.position[2]);
 
-        footprint
+        center2corners
+            .row_iter()
+            .map(|corner| {
+                let mat = corner * rot + position;
+                [mat[(0, 0)], mat[(0, 1)], mat[(0, 2)]]
+            })
+            .collect()
     }
 }
