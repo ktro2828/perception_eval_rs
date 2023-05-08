@@ -7,7 +7,7 @@ pub(super) trait TPMetrics {
 }
 
 #[derive(Debug)]
-pub(crate) struct TPMetricsAP;
+pub(super) struct TPMetricsAP;
 
 impl TPMetrics for TPMetricsAP {
     fn get_value(&self, _result: &PerceptionResult) -> f64 {
@@ -16,7 +16,7 @@ impl TPMetrics for TPMetricsAP {
 }
 
 #[derive(Debug)]
-pub(crate) struct TPMetricsAPH;
+pub(super) struct TPMetricsAPH;
 
 impl TPMetrics for TPMetricsAPH {
     fn get_value(&self, result: &PerceptionResult) -> f64 {
