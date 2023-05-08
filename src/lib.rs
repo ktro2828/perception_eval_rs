@@ -9,3 +9,5 @@ pub mod matching; // WIP
 pub mod object;
 pub mod point;
 // pub mod result; // WIP
+pub mod filter;
+pub mod threshold;

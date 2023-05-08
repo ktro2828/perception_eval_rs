@@ -78,12 +78,12 @@ impl DynamicObject {
         self.area() * self.size[2]
     }
 
-    pub fn distance(&self, other: &DynamicObject) -> f64 {
-        distance_points(&self.position, &other.position)
+    pub fn distance(&self) -> f64 {
+        distance_points(&self.position, &[0.0; 3])
     }
 
-    pub fn distance_bev(&self, other: &DynamicObject) -> f64 {
-        distance_points_bev(&self.position, &other.position)
+    pub fn distance_bev(&self) -> f64 {
+        distance_points_bev(&self.position, &[0.0; 3])
     }
 
     pub fn rotation_matrix(&self) -> RotationMatrix<f64> {

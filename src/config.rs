@@ -1,5 +1,6 @@
 use crate::label::{convert_labels, LabelConverter};
 use crate::{frame_id::FrameID, label::Label};
+use log4rs::filter::Filter;
 use std::io::Error as IoError;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
