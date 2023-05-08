@@ -25,6 +25,14 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 | Detection2D | mAP                | 2D detection         | :x:                |
 | Tracking2D  | CLEAR              | 2D tracking          | :x:                |
 
+### Coordinates system
+
+| Name       | Support            |
+|:-----------|:-------------------|
+| `BaseLink` | :heavy_check_mark: |
+| `Map`      | :x:                |
+| `Camera`   | :x:                |
+
 ### Evaluation manager & configuration
 
 | Name                          | Description                            | Support            |
