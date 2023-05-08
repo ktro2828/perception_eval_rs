@@ -1,3 +1,5 @@
+use crate::point::distance_points;
+
 use super::object::object3d::DynamicObject;
 use thiserror::Error as ThisError;
 
@@ -19,15 +21,17 @@ pub enum MatchingMode {
     Iou3d,
 }
 
-pub trait MatchingMethod {
+pub(crate) trait MatchingMethod {
     fn calculate_matching_score(
+        &self,
         estimated_object: &DynamicObject,
-        ground_truth_object: &Option<DynamicObject>,
-    ) -> Option<f64>;
+        ground_truth_object: &DynamicObject,
+    ) -> f64;
 
     fn is_better_than(
+        &self,
         estimated_object: &DynamicObject,
-        ground_truth_object: &Option<DynamicObject>,
+        ground_truth_object: &DynamicObject,
         threshold: &f64,
     ) -> bool;
 }
@@ -37,31 +41,21 @@ pub struct CenterDistanceMatching;
 
 impl MatchingMethod for CenterDistanceMatching {
     fn calculate_matching_score(
+        &self,
         estimated_object: &DynamicObject,
-        ground_truth_object: &Option<DynamicObject>,
-    ) -> Option<f64> {
-        match ground_truth_object {
-            Some(gt) => {
-                let [est_x, est_y, est_z] = estimated_object.position;
-                let [gt_x, gt_y, gt_z] = gt.position;
-                let distance =
-                    ((est_x - gt_x).powi(2) + (est_y - gt_y).powi(2) + (est_z - gt_z).powi(2))
-                        .powf(0.5);
-                Some(distance)
-            }
-            None => None,
-        }
+        ground_truth_object: &DynamicObject,
+    ) -> f64 {
+        distance_points(&estimated_object.position, &ground_truth_object.position)
     }
 
     fn is_better_than(
+        &self,
         estimated_object: &DynamicObject,
-        ground_truth_object: &Option<DynamicObject>,
+        ground_truth_object: &DynamicObject,
         threshold: &f64,
     ) -> bool {
-        match Self::calculate_matching_score(estimated_object, ground_truth_object) {
-            Some(distance) => distance < *threshold,
-            None => false,
-        }
+        let distance = self.calculate_matching_score(estimated_object, ground_truth_object);
+        distance < *threshold
     }
 }
 

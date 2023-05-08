@@ -13,13 +13,12 @@ pub struct PerceptionResult {
 
 impl PerceptionResult {
     pub fn is_label_correct(&self) -> bool {
-        match self.ground_truth_object {
+        match &self.ground_truth_object {
             Some(gt) => self.estimated_object.label == gt.label,
             None => false,
         }
     }
 
-    // TODO
     pub fn is_result_correct(
         &self,
         matching_mode: &MatchingMode,
@@ -31,7 +30,13 @@ impl PerceptionResult {
         } else {
             return Err(MatchingError::ValueError);
         }
-        matching_method.is_better_than(self.estimated_object, self.ground_truth_object, threshold)
+        let is_correct = {
+            match &self.ground_truth_object {
+                Some(gt) => matching_method.is_better_than(&self.estimated_object, &gt, threshold),
+                None => false,
+            }
+        };
+        Ok(is_correct)
     }
 }
 
@@ -53,9 +58,11 @@ pub fn get_perception_results(
         let mut ground_truth_object_list = ground_truth_objects.clone();
         let mut score_table: Vec<Vec<Option<f64>>> =
             get_score_table(estimated_objects, ground_truth_objects, matching_method);
-        for _ in 0..num_estimated_objects {}
+        for _ in 0..num_estimated_objects {
+            // TODO
+        }
         if 0 < estimated_object_list.len() {
-            let mut fp_results = get_fp_perception_results(estimated_object_list);
+            let mut fp_results = get_fp_perception_results(&estimated_object_list);
             results.append(&mut fp_results);
         }
         results
@@ -77,7 +84,7 @@ fn get_fp_perception_results(estimated_objects: &Vec<DynamicObject>) -> Vec<Perc
 fn get_score_table<T>(
     estimated_objects: &Vec<DynamicObject>,
     ground_truth_objects: &Vec<DynamicObject>,
-    matching_method: &T,
+    matching_method: T,
 ) -> Vec<Vec<Option<f64>>>
 where
     T: MatchingMethod,
@@ -89,9 +96,7 @@ where
     for (i, est) in estimated_objects.iter().enumerate() {
         for (j, gt) in ground_truth_objects.iter().enumerate() {
             if est.label == gt.label {
-                // TODO
-                score_table[i][j] = matching_method
-                    .calculate_matching_score(estimated_objects, ground_truth_objects);
+                score_table[i][j] = Some(matching_method.calculate_matching_score(est, gt));
             }
         }
     }
