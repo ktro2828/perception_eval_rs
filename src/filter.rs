@@ -67,7 +67,7 @@ fn is_target_object(
     is_target = {
         let max_y_position = label_threshold.get_threshold(max_y_positions);
         is_target
-            && object.position[0].abs()
+            && object.position[1].abs()
                 < max_y_position.unwrap_or_else(|| {
                     log::error!("There is no corresponding max_y_position");
                     panic!("There is no corresponding max_y_position")
