@@ -25,6 +25,13 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 | Detection2D | mAP                | 2D detection         | :x:                |
 | Tracking2D  | CLEAR              | 2D tracking          | :x:                |
 
+### Evaluation manager & configuration
+
+| Name                          | Description                            | Support            |
+|:------------------------------|:---------------------------------------|:-------------------|
+| `PerceptionEvaluationManager` | Manager to evaluate perception tasks   | :white_check_mark: |
+| `PerceptionEvaluationConfig`  | Configuration of perception evaluation | :white_check_mark: |
+
 ### Matching objects
 
 | Name             | Description                                  | Support            |
