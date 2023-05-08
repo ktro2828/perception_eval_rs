@@ -1,7 +1,8 @@
 use std::vec;
 
 use crate::matching::{
-    CenterDistanceMatching, MatchingError, MatchingMode, MatchingResult, PlaneDistanceMatching,
+    CenterDistanceMatching, Iou2dMatching, Iou3dMatching, MatchingMode, MatchingResult,
+    PlaneDistanceMatching,
 };
 
 use super::matching::MatchingMethod;
@@ -14,6 +15,15 @@ pub struct PerceptionResult {
 }
 
 impl PerceptionResult {
+    pub fn new(
+        estimated_object: DynamicObject,
+        ground_truth_object: Option<DynamicObject>,
+    ) -> Self {
+        Self {
+            estimated_object: estimated_object,
+            ground_truth_object: ground_truth_object,
+        }
+    }
     pub fn is_label_correct(&self) -> bool {
         match &self.ground_truth_object {
             Some(gt) => self.estimated_object.label == gt.label,
@@ -30,7 +40,8 @@ impl PerceptionResult {
             match matching_mode {
                 MatchingMode::CenterDistance => Box::new(CenterDistanceMatching),
                 MatchingMode::PlaneDistance => Box::new(PlaneDistanceMatching),
-                MatchingMode::Iou2d | MatchingMode::Iou3d => Err(MatchingError::ValueError)?,
+                MatchingMode::Iou2d => Box::new(Iou2dMatching),
+                MatchingMode::Iou3d => Box::new(Iou3dMatching),
             }
         };
         let is_correct = {
@@ -48,22 +59,23 @@ pub fn get_perception_results(
     ground_truth_objects: &Vec<DynamicObject>,
 ) -> Vec<PerceptionResult> {
     let mut results: Vec<PerceptionResult> = Vec::new();
-    let num_estimated_objects = estimated_objects.len();
-    let num_ground_truth_objects = ground_truth_objects.len();
+
+    // Use CenterDistance by default
     let matching_method = CenterDistanceMatching;
 
-    if num_estimated_objects == 0 {
+    if estimated_objects.len() == 0 {
         results
-    } else if num_ground_truth_objects == 0 {
+    } else if ground_truth_objects.len() == 0 {
         get_fp_perception_results(estimated_objects)
     } else {
         let mut estimated_object_list = estimated_objects.clone();
         let mut ground_truth_object_list = ground_truth_objects.clone();
         let mut score_table: Vec<Vec<Option<f64>>> =
             get_score_table(estimated_objects, ground_truth_objects, matching_method);
-        for _ in 0..num_estimated_objects {
-            // TODO
+        for _ in 0..estimated_objects.len() {
+            for (est_idx, row_table) in score_table.iter().enumerate() {}
         }
+
         if 0 < estimated_object_list.len() {
             let mut fp_results = get_fp_perception_results(&estimated_object_list);
             results.append(&mut fp_results);
@@ -72,18 +84,23 @@ pub fn get_perception_results(
     }
 }
 
+/// Returns list of `PerceptionResult` that ground_truth_object of each result is None, it means FP.
+///
+/// * `estimated_objects`   - List of estimated objects.
 fn get_fp_perception_results(estimated_objects: &Vec<DynamicObject>) -> Vec<PerceptionResult> {
-    let mut results: Vec<PerceptionResult> = Vec::new();
-
-    for est in estimated_objects {
-        results.push(PerceptionResult {
-            estimated_object: est.to_owned(),
-            ground_truth_object: None,
-        })
-    }
-    results
+    estimated_objects
+        .iter()
+        .map(|obj| PerceptionResult::new(obj.to_owned(), None))
+        .collect::<Vec<PerceptionResult>>()
 }
 
+/// Returns NxM score table.
+/// N: Number of estimated objects.
+/// M: Number of ground truth objects.
+///
+/// * `estimated_objects`       - List of estimated objects.
+/// * `ground_truth_objects`    - List of ground truth objects.
+/// * `matching_method`         - MatchingMethod instance.
 fn get_score_table<T>(
     estimated_objects: &Vec<DynamicObject>,
     ground_truth_objects: &Vec<DynamicObject>,
