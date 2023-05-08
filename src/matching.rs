@@ -72,15 +72,15 @@ impl MatchingMethod for PlaneDistanceMatching {
     ) -> f64 {
         let mut est_footprint = estimated_object.footprint();
         est_footprint.sort_by(|p1, p2| {
-            let d1 = p1[0].powi(2) + p1[1].powi(2);
-            let d2 = p2[0].powi(2) + p1[1].powi(2);
+            let d1 = p1[0].hypot(p1[1]);
+            let d2 = p2[0].hypot(p2[1]);
             d1.partial_cmp(&d2).unwrap()
         });
 
         let mut gt_footprint = ground_truth_object.footprint();
         gt_footprint.sort_by(|p1, p2| {
-            let d1 = p1[0].powi(2) + p1[1].powi(2);
-            let d2 = p2[0].powi(2) + p1[1].powi(2);
+            let d1 = p1[0].hypot(p1[1]);
+            let d2 = p2[0].hypot(p2[1]);
             d1.partial_cmp(&d2).unwrap()
         });
 
