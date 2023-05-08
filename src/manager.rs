@@ -1,6 +1,8 @@
 use chrono::NaiveDateTime;
 
-use crate::{config::PerceptionEvaluationConfig, object::object3d::DynamicObject};
+use crate::{
+    config::PerceptionEvaluationConfig, dataset::FrameGroundTruth, object::object3d::DynamicObject,
+};
 
 pub trait EvaluationManager {
     fn get_frame_result<T>(
