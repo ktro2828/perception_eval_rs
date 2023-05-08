@@ -2,6 +2,39 @@ use crate::{
     config::FilterParams, label::Label, object::object3d::DynamicObject, threshold::LabelThreshold,
 };
 
+/// Filter objects with `FilterParams`. Returns list of kept objects.
+///
+/// * `objects`         - List of `DynamicObject` instances.
+/// * `is_gt`           - Whether input objects are ground truth.
+/// * `filter_params`   - `FilterParam` instance.
+///
+/// # Examples
+/// ```
+/// let object1 = DynamicObject {
+///     frame_id: FrameID::BaseLink,
+///     position: [1.0, 1.0, 0.0],
+///     orientation: [1.0, 0.0, 0.0, 0.0],
+///     size: [2.0, 1.0, 1.0],
+///     velocity: None,
+///     confidence: 1.0,
+///     label: Label::Car,
+///     pointcloud_num: Some(1000),
+///     uuid: Some("111".to_string()),
+/// };
+///
+/// let object2 = DynamicObject {
+///     frame_id: FrameID::BaseLink,
+///     position: [1.0, 1.0, 0.0],
+///     orientation: [1.0, 0.0, 0.0, 0.0],
+///     size: [2.0, 1.0, 1.0],
+///     velocity: None,
+///     confidence: 1.0,
+///     label: Label::Car,
+///     pointcloud_num: Some(1000),
+///     uuid: Some("111".to_string()),
+/// };
+///
+/// ```
 pub fn filter_objects(
     objects: &Vec<DynamicObject>,
     is_gt: bool,
@@ -37,6 +70,47 @@ pub fn filter_objects(
     ret
 }
 
+/// Returns whether input object is kept.
+///
+/// * `object`              - DynamicObject instance.
+/// * `target_labels`       - List of `Label` instances.
+/// * `max_x_positions`     - List of maximum x positions for corresponding label.
+/// * `max_y_positions`     - List of maximum y positions for corresponding label.
+/// * `min_point_numbers`   - List of minimum number of points the object's box
+///                           must contain for corresponding label.
+/// * `target_uuids`        - List of instance IDs to be kept.
+///
+/// # Examples
+/// ```
+/// let object1 = DynamicObject {
+///     frame_id: FrameID::BaseLink,
+///     position: [1.0, 1.0, 0.0],
+///     orientation: [1.0, 0.0, 0.0, 0.0],
+///     size: [2.0, 1.0, 1.0],
+///     velocity: None,
+///     confidence: 1.0,
+///     label: Label::Car,
+///     pointcloud_num: Some(1000),
+///     uuid: Some("111".to_string()),
+/// };
+///
+/// let target_labels = vec![Label::Car, Label::Pedestrian];
+/// let max_x_positions = vec![20.0, 10.0];
+/// let max_y_positions = vec![20.0, 10.0];
+/// let min_point_numbers = vec![100, 100];
+/// let target_uuids = None;
+///
+/// let is_target = is_target_object(
+///     &object1,
+///     &target_labels,
+///     &max_x_positions,
+///     &max_y_positions,
+///     &min_point_numbers,
+///     &target_uuids,
+/// );
+///
+/// assert_eq!(is_target, true);
+/// ```
 fn is_target_object(
     object: &DynamicObject,
     target_labels: &Vec<Label>,

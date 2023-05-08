@@ -58,6 +58,7 @@ impl Display for DynamicObject {
 }
 
 impl DynamicObject {
+    /// Returns `ObjectState` instance.
     pub fn state(&self) -> ObjectState {
         ObjectState {
             position: self.position,
@@ -67,26 +68,46 @@ impl DynamicObject {
         }
     }
 
+    /// Returns name of label in string.
     pub fn label_name(&self) -> String {
         self.label.to_string()
     }
 
+    /// Returns area of box in BEV.
     pub fn area(&self) -> f64 {
         self.size[0] * self.size[1]
     }
 
+    /// Returns volume of box.
     pub fn volume(&self) -> f64 {
         self.area() * self.size[2]
     }
 
+    /// Returns distance from origin where the object is with respect to.
     pub fn distance(&self) -> f64 {
         distance_points(&self.position, &[0.0; 3])
     }
 
+    /// Returns distance in BEV from origin where the object is with respect to.
     pub fn distance_bev(&self) -> f64 {
         distance_points_bev(&self.position, &[0.0; 3])
     }
 
+    /// Returns distance from the other point.
+    /// 
+    /// * `point`   - 3D coordinates position.
+    pub fn distance_from(&self, point: &[f64; 3]) -> f64 {
+        distance_points(&self.position, point)
+    }
+
+    /// Returns distance in BEV from the other point.
+    /// 
+    /// * `point`   - 3D coordinates position.
+    pub fn distance_bev_from(&self, point: &[f64; 3]) -> f64 {
+        distance_points_bev(&self.position, point)
+    }
+
+    /// Returns 3x3 rotation matrix.
     pub fn rotation_matrix(&self) -> RotationMatrix<f64> {
         let [q0, q1, q2, q3] = self.orientation;
         RotationMatrix::new(
@@ -102,6 +123,7 @@ impl DynamicObject {
         )
     }
 
+    /// Returns footprint of object's box.
     pub fn footprint(&self) -> Vec<[f64; 3]> {
         let mut center2corners = Vec::new();
         center2corners.push([self.size[1] * 0.5, self.size[0] * 0.5, 0.0]);

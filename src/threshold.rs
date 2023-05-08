@@ -1,5 +1,9 @@
 use crate::label::Label;
 
+/// A struct to extract corresponding threshold value from list of thresholds.
+///
+/// * `label`           - Target label.
+/// * `target_labels`   - List of labels.
 #[derive(Debug, Clone)]
 pub struct LabelThreshold<'a> {
     label: &'a Label,
@@ -7,6 +11,18 @@ pub struct LabelThreshold<'a> {
 }
 
 impl<'a> LabelThreshold<'a> {
+    /// Generate instance of `LabelThreshold`
+    ///
+    /// * `label`           - Target label
+    /// * `target_labels`   - List of labels.
+    ///
+    /// # Example
+    /// ```
+    /// let label = Label::Car;
+    /// let target_labels = vec![Label::Car, Label::Bus, Label::Pedestrian];
+    ///
+    /// let converter = LabelConverter::new(&label, &target_labels);
+    /// ```
     pub fn new(label: &'a Label, target_labels: &'a Vec<Label>) -> Self {
         Self {
             label: label,
@@ -14,6 +30,23 @@ impl<'a> LabelThreshold<'a> {
         }
     }
 
+    /// Returns corresponding threshold from list of thresholds.
+    /// The index is same with target label's one.
+    ///
+    /// * `thresholds`      - List of thresholds.
+    ///
+    /// # Example
+    /// ```
+    /// let label = Label::Car;
+    /// let target_labels = vec![Label::Car, Label::Bus, Label::Pedestrian];
+    ///
+    /// let converter = LabelConverter::new(&label, &target_labels);
+    ///
+    /// let thresholds = vec![1.0, 2.0, 3.0];
+    ///
+    /// let threshold = converter.get_label_threshold(&thresholds);
+    /// assert_eq!(threshold, 1.0);
+    /// ```
     pub fn get_threshold<T>(&self, thresholds: &Vec<T>) -> Option<T>
     where
         T: Copy,
@@ -22,6 +55,22 @@ impl<'a> LabelThreshold<'a> {
     }
 }
 
+/// Returns corresponding threshold from list of thresholds.
+/// The index is same with target label's one.
+///
+/// * `label`           - Target label.
+/// * `target_labels`   - List of labels.
+/// * `thresholds`      - List of thresholds.
+///
+/// # Example
+/// ```
+/// let label = Label::Car;
+/// let target_labels = vec![Label::Car, Label::Bus, Label::Pedestrian];
+/// let thresholds = vec![1.0, 2.0, 3.0];
+///
+/// let threshold = get_label_threshold(&label, &target_labels, &thresholds);
+/// assert_eq!(threshold, 1.0);
+/// ```
 pub fn get_label_threshold<T>(
     label: &Label,
     target_labels: &Vec<Label>,

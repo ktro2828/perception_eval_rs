@@ -11,6 +11,10 @@ use chrono::naive::NaiveDateTime;
 use std::fmt::{Display, Formatter, Result as FormatResult};
 use std::path::PathBuf;
 
+/// A struct to contain ground truth objects at one frame.
+///
+/// * `timestamp`   - Timestamp of the frame.
+/// * `objects`     - List of ground truth objects.
 #[derive(Debug, Clone)]
 pub struct FrameGroundTruth {
     timestamp: NaiveDateTime,
@@ -28,6 +32,12 @@ impl Display for FrameGroundTruth {
     }
 }
 
+/// Returns list of `FrameGroundTruth` including whole frames.
+///
+/// * `version`         - NuScenes version of dataset.
+/// * `data_root`       - Root directory path of dataset.
+/// * `evaluation_task` - Task to evaluate.
+/// * `frame_id`        - Frame id where objects are with respect to.
 pub fn load_dataset(
     version: String,
     data_root: PathBuf,
@@ -49,6 +59,11 @@ pub fn load_dataset(
     Ok(datasets)
 }
 
+/// Convert NuScenes sample into `FrameGroundTruth` instance.
+///
+/// * `nusc`        - NuScenes instance.
+/// * `sample`      - Sample annotated in meta data.
+/// * `frame_id`    - FrameID instance.
 fn sample_to_frame(
     nusc: &NuScenes,
     sample: &WithDataset<SampleInternal>,
@@ -84,6 +99,10 @@ fn sample_to_frame(
     Ok(ret)
 }
 
+/// Extract `FrameGroundTruth` instance which has nearest timestamp with input timestamp.
+///
+/// * `frame_ground_truths` - List of FrameGroundTruth instances.
+/// * `timestamp`           - Target timestamp.
 pub fn get_current_frame(
     frame_ground_truths: &Vec<FrameGroundTruth>,
     timestamp: &NaiveDateTime,

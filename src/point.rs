@@ -1,3 +1,7 @@
+/// Calculate euclidean distance between two points.
+///
+/// * `point1`  - 3D coordinates point.
+/// * `point2`  - 3D coordinates point.
 pub fn distance_points(point1: &[f64; 3], point2: &[f64; 3]) -> f64 {
     let mut sum = 0.0;
     for i in 0..3 {
@@ -6,6 +10,10 @@ pub fn distance_points(point1: &[f64; 3], point2: &[f64; 3]) -> f64 {
     sum.powf(0.5)
 }
 
+/// Calculate euclidean distance in BEV between two points.
+///
+/// * `point1`  - 3D coordinates point.
+/// * `point2`  - 3D coordinates point.
 pub fn distance_points_bev(point1: &[f64; 3], point2: &[f64; 3]) -> f64 {
     let mut sum = 0.0;
     for i in 0..2 {
@@ -14,6 +22,11 @@ pub fn distance_points_bev(point1: &[f64; 3], point2: &[f64; 3]) -> f64 {
     sum.powf(0.5)
 }
 
+/// Determine which one is left and right side with cross product.
+/// Returns input points (left, right) order.
+///
+/// * `point1`  - 3D coordinates point.
+/// * `point2`  - 3D coordinates point.
 pub fn get_point_left_right<'a>(
     point1: &'a [f64; 3],
     point2: &'a [f64; 3],

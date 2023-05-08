@@ -7,6 +7,7 @@ use thiserror::Error as ThisError;
 
 pub type LabelResult<T> = Result<T, LabelError>;
 
+/// Errors that can occur while constructing `Label` instance.
 #[derive(Debug, ThisError)]
 pub enum LabelError {
     #[error("internal error")]
@@ -15,6 +16,7 @@ pub enum LabelError {
     ValueError(String),
 }
 
+/// Represents name of labels.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Label {
     Unknown,
@@ -33,12 +35,25 @@ impl Display for Label {
     }
 }
 
+/// Struct to covert label from string into `Label`.
+/// Use `::new()` method to generate instance.
+///
+/// * `paris`   - HashMap of pairs, key is name of label in string, value is `Label` instance.
 #[derive(Debug, Clone)]
 pub struct LabelConverter<'a> {
     pairs: HashMap<&'a str, Label>,
 }
 
 impl<'a> LabelConverter<'a> {
+    /// Create instance of LabelConverter.
+    ///
+    /// * `label_prefix`    - Name of label prefix, e.g. autoware.
+    ///
+    /// # Examples
+    /// ```
+    /// let label_prefix = Some("autoware");
+    /// let converter = LabelConverter::new(label_prefix).unwrap();
+    /// ```
     pub fn new(label_prefix: Option<&str>) -> LabelResult<Self> {
         let mut pairs = HashMap::new();
 
@@ -121,6 +136,20 @@ impl<'a> LabelConverter<'a> {
     }
 }
 
+/// Convert input string labels into Label objects.
+///
+/// * `target_labels`   - List of string labels.
+/// * `converter`       - Instance of LabelConverter.
+///
+/// # Examples
+/// ```
+/// let target_labels = vec!["car", "bus", "pedestrian"];
+/// let label_prefix = Some("autoware");
+/// let converter = LabelConverter::new(label_prefix).unwrap();
+///
+/// let result = convert_labels(&target_labels, &converter).unwrap();
+/// assert_eq!(result, vec![Label::Car, Label::Bus, Label::Pedestrian]);
+/// ```
 pub fn convert_labels(
     target_labels: &Vec<&str>,
     converter: &LabelConverter,

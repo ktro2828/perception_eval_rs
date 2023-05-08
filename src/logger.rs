@@ -9,6 +9,11 @@ use std::path::Path;
 
 pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
+/// Configure logger instance.
+/// The log output will be saved in `log_dir/output.log`.
+///
+/// * `log_dir` - Directory path to save output log.
+/// * `level`   - Logging level.
 pub fn configure_logger(log_dir: &Path, level: Level) -> Result<()> {
     let logfile: FileAppender = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))

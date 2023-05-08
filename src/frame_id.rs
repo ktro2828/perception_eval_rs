@@ -4,6 +4,7 @@ use thiserror::Error as ThisError;
 
 pub type FrameIdResult<T> = Result<T, FrameIdError>;
 
+/// Errors that can occur while constructing `FrameID` instance.
 #[derive(Debug, ThisError)]
 pub enum FrameIdError {
     #[error("internal error")]
@@ -12,6 +13,7 @@ pub enum FrameIdError {
     ValueError(String),
 }
 
+/// Represents type of sensor frames.
 #[derive(Debug, Clone, PartialEq)]
 pub enum FrameID {
     // 3D

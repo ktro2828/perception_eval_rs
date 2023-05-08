@@ -36,6 +36,7 @@ pub(crate) trait MatchingMethod {
     ) -> bool;
 }
 
+/// Matching object with euclidean distance of center of objects.
 #[derive(Debug, Clone)]
 pub struct CenterDistanceMatching;
 
@@ -45,7 +46,7 @@ impl MatchingMethod for CenterDistanceMatching {
         estimated_object: &DynamicObject,
         ground_truth_object: &DynamicObject,
     ) -> f64 {
-        distance_points(&estimated_object.position, &ground_truth_object.position)
+        estimated_object.distance_from(&ground_truth_object.position)
     }
 
     fn is_better_than(
