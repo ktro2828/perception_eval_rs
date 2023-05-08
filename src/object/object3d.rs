@@ -5,7 +5,10 @@ use crate::{
     label::Label,
     point::{distance_points, distance_points_bev},
 };
-use std::fmt::{Display, Formatter, Result as FormatResult};
+use std::{
+    f64::consts::PI,
+    fmt::{Display, Formatter, Result as FormatResult},
+};
 
 pub type RotationMatrix<T> = SMatrix<T, 3, 3>;
 type PositionMatrix = SMatrix<f64, 1, 3>;
@@ -109,7 +112,46 @@ impl DynamicObject {
         distance_points_bev(&self.position, point)
     }
 
+    pub fn heading(&self) -> f64 {
+        let [_, _, mut yaw] = self.euler();
+
+        yaw = -yaw - 0.5 * PI;
+
+        if PI < yaw {
+            yaw - 2.0 * PI
+        } else if yaw < -PI {
+            yaw + 2.0 * PI
+        } else {
+            yaw
+        }
+    }
+
     /// Returns 3x3 rotation matrix.
+    ///
+    /// # Examples
+    /// ```
+    /// let object = DynamicObject {
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let rot = object.rotation_matrix();
+    ///
+    /// let eye = RotationMatrix::new(
+    ///     1.0, 0.0, 0.0,
+    ///     0.0, 1.0, 0.0,
+    ///     0.0, 0.0, 1.0
+    /// );
+    ///
+    /// assert_eq!(rot, eye);
+    /// ```
     pub fn rotation_matrix(&self) -> RotationMatrix<f64> {
         let [q0, q1, q2, q3] = self.orientation;
         RotationMatrix::new(
@@ -125,13 +167,64 @@ impl DynamicObject {
         )
     }
 
+    /// Returns euler angles in [roll, pitch yaw] order.
+    ///
+    /// # Examples
+    /// ```
+    /// let object = DynamicObject {
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let euler = object.euler();
+    ///
+    /// asset_eq!(euler, [0.0, 0.0, 0.0]);
+    /// ```
+    pub fn euler(&self) -> [f64; 3] {
+        let [q0, q1, q2, q3] = self.orientation;
+        let roll = (2.0 * (q0 * q1 + q2 * q3) / (1.0 - 2.0 * (q1.powi(2) + q2.powi(2)))).atan();
+        let pitch = -0.5 * PI
+            + 2.0
+                * ((1.0 + 2.0 * (q0 * q2 - q1 * q3)) / (1.0 - 2.0 * (q0 * q2 - q1 * q3)))
+                    .sqrt()
+                    .atan();
+        let yaw = (2.0 * (q0 * q3 + q1 * q2) / (1.0 - 2.0 * (q2.powi(2) + q3.powi(2)))).atan();
+        [roll, pitch, yaw]
+    }
+
     /// Returns footprint of object's box.
+    ///
+    /// # Examples
+    /// ```
+    /// let object = DynamicObject {
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 2.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let footprint = object.footprint();
+    ///
+    /// asset_eq!(&footprint, [[2.0, 2.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 0.0], [2.0, 0.0, 0.0]]);
+    /// ```
     pub fn footprint(&self) -> Vec<[f64; 3]> {
         let center2corners = CornerMatrix::new(
             self.size[1] * 0.5,
             self.size[0] * 0.5,
             0.0,
-            self.size[1] * 0.5,
+            -self.size[1] * 0.5,
             self.size[0] * 0.5,
             0.0,
             -self.size[1] * 0.5,
