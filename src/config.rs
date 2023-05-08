@@ -62,7 +62,7 @@ pub struct FilterParams {
     pub(crate) target_labels: Vec<Label>,
     pub(crate) max_x_positions: Vec<f64>,
     pub(crate) max_y_positions: Vec<f64>,
-    pub(crate) min_point_numbers: Vec<u64>,
+    pub(crate) min_point_numbers: Option<Vec<isize>>,
     pub(crate) target_uuids: Option<Vec<String>>,
 }
 
@@ -71,7 +71,7 @@ impl FilterParams {
         target_labels: &Vec<&str>,
         max_x_position: f64,
         max_y_position: f64,
-        min_point_number: u64,
+        min_point_number: Option<isize>,
         target_uuids: Option<Vec<String>>,
     ) -> Self {
         let label_converter = LabelConverter::new(Some("autoware")).unwrap();
@@ -79,7 +79,12 @@ impl FilterParams {
         let num_target_labels = target_labels.len();
         let max_x_positions = vec![max_x_position; num_target_labels];
         let max_y_positions = vec![max_y_position; num_target_labels];
-        let min_point_numbers = vec![min_point_number; num_target_labels];
+        let min_point_numbers = {
+            match min_point_number {
+                Some(num_pt) => Some(vec![num_pt; num_target_labels]),
+                None => None,
+            }
+        };
 
         Self {
             target_labels: target_labels,
@@ -130,7 +135,7 @@ pub fn get_evaluation_params(
     target_labels: &Vec<&str>,
     max_x_position: f64,
     max_y_position: f64,
-    min_point_number: u64,
+    min_point_number: Option<isize>,
     target_uuids: Option<Vec<String>>,
     center_distance_threshold: f64,
     plane_distance_threshold: f64,

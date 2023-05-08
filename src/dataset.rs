@@ -71,6 +71,7 @@ fn sample_to_frame(
             confidence: 1.0,
             label: label,
             velocity: None,
+            pointcloud_num: Some(sample_annotation.num_lidar_pts),
             uuid: Some(sample_annotation.instance_token.to_string()),
         };
         objects.push(object);

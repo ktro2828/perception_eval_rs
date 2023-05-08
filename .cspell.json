@@ -12,6 +12,7 @@
     "nuimages",
     "nusc",
     "nuscenes",
+    "pointcloud",
     "powi",
     "powf",
     "pullable",
