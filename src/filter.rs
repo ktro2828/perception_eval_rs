@@ -16,7 +16,7 @@ pub fn filter_objects(
                 &filter_params.target_labels,
                 &filter_params.max_x_positions,
                 &filter_params.max_y_positions,
-                &filter_params.uuids,
+                &filter_params.target_uuids,
             );
         } else {
             is_target = is_target_object(
