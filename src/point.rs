@@ -7,7 +7,7 @@ pub fn distance_points(point1: &[f64; 3], point2: &[f64; 3]) -> f64 {
     for i in 0..3 {
         sum += (point1[i] - point2[i]).powi(2);
     }
-    sum.powf(0.5)
+    sum.sqrt()
 }
 
 /// Calculate euclidean distance in BEV between two points.
@@ -19,7 +19,7 @@ pub fn distance_points_bev(point1: &[f64; 3], point2: &[f64; 3]) -> f64 {
     for i in 0..2 {
         sum += (point1[i] - point2[i]).powi(2);
     }
-    sum.powf(0.5)
+    sum.sqrt()
 }
 
 /// Determine which one is left and right side with cross product.
