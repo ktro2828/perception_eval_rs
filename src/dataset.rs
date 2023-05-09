@@ -79,6 +79,7 @@ fn sample_to_frame(
         let label =
             label_converter.convert(&nusc.category_map[&instance.category_token].clone().name);
         let object = DynamicObject {
+            timestamp: sample.timestamp,
             frame_id: frame_id.clone(),
             position: sample_annotation.translation,
             orientation: sample_annotation.rotation,
