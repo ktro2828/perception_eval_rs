@@ -37,8 +37,10 @@ fn main() {
         )
         .unwrap();
 
-        println!("Frame [{}]: {}", i, frame_ground_truths[i]);
-        println!("Corresponding GT: {}", &gt);
+        println!(
+            "[Frame {}] Current GT:  {}, (Corresponding GT): {}",
+            &i, &frame_ground_truths[i], &gt
+        );
 
         assert_eq!(
             &gt, &frame_ground_truths[i],
