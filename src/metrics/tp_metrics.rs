@@ -10,8 +10,11 @@ pub(super) trait TPMetrics {
 pub(super) struct TPMetricsAP;
 
 impl TPMetrics for TPMetricsAP {
-    fn get_value(&self, _result: &PerceptionResult) -> f64 {
-        1.0
+    fn get_value(&self, result: &PerceptionResult) -> f64 {
+        match &result.ground_truth_object {
+            Some(_) => 1.0,
+            None => 0.0,
+        }
     }
 }
 
