@@ -25,6 +25,13 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 | Detection2D | mAP                | 2D detection         | :x:                |
 | Tracking2D  | CLEAR              | 2D tracking          | :x:                |
 
+### Object type
+
+| Name              | Description | Support            |
+|:------------------|:------------|:-------------------|
+| `DynamicObject`   | 3D object   | :white_check_mark: |
+| `DynamicObject2D` | 2D object   | :x:                |
+
 ### Coordinates system
 
 | Name       | Support            |
