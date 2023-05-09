@@ -33,17 +33,20 @@ pub struct PerceptionEvaluationConfig {
 }
 
 impl PerceptionEvaluationConfig {
-    pub fn new(
-        dataset_path: &str,
-        frame_id: &str,
-        result_dir: &str,
-        filter_params: &FilterParams,
-        metrics_params: &MetricsParams,
-        load_raw_data: &bool,
-    ) -> Self {
-        let dataset_path = Path::new(dataset_path);
-        let frame_id = FrameID::from_str(frame_id).unwrap();
-        let result_dir = Path::new(result_dir);
+    pub fn new<S>(
+        dataset_path: S,
+        frame_id: S,
+        result_dir: S,
+        filter_params: FilterParams,
+        metrics_params: MetricsParams,
+        load_raw_data: bool,
+    ) -> Self
+    where
+        S: AsRef<str>,
+    {
+        let dataset_path = Path::new(dataset_path.as_ref());
+        let frame_id = FrameID::from_str(frame_id.as_ref()).unwrap();
+        let result_dir = Path::new(result_dir.as_ref());
         let log_dir = result_dir.join("log");
         let viz_dir = result_dir.join("visualize");
 
@@ -53,9 +56,9 @@ impl PerceptionEvaluationConfig {
             result_dir: result_dir.to_owned(),
             log_dir: log_dir,
             viz_dir: viz_dir,
-            filter_params: filter_params.to_owned(),
-            metrics_params: metrics_params.to_owned(),
-            load_raw_data: load_raw_data.to_owned(),
+            filter_params: filter_params,
+            metrics_params: metrics_params,
+            load_raw_data: load_raw_data,
         }
     }
 }
