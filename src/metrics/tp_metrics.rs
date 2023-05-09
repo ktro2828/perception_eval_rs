@@ -29,10 +29,8 @@ impl TPMetrics for TPMetricsAPH {
 
                 if PI < diff_heading {
                     diff_heading = 2.0 * PI - diff_heading;
-                    (1.0 - diff_heading / PI).max(0.0).min(1.0)
-                } else {
-                    (1.0 - diff_heading / PI).max(0.0).min(1.0)
                 }
+                (1.0 - diff_heading / PI).max(0.0).min(1.0)
             }
             None => 0.0,
         }
