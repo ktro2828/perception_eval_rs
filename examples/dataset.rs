@@ -2,7 +2,10 @@ use std::path::{Path, PathBuf};
 
 use clap::Parser;
 use perception_eval::{
-    dataset, evaluation_task::EvaluationTask, frame_id::FrameID, logger::configure_logger,
+    dataset::{self, get_current_frame},
+    evaluation_task::EvaluationTask,
+    frame_id::FrameID,
+    logger::configure_logger,
 };
 
 #[derive(Debug, Parser)]
@@ -22,14 +25,25 @@ fn main() {
     let frame_id = FrameID::BaseLink;
 
     let frame_ground_truths =
-        dataset::load_dataset(version, data_root, &evaluation_task, &frame_id);
+        dataset::load_dataset(version, data_root, &evaluation_task, &frame_id).unwrap();
 
-    println!(
-        "Number of frames: {:?}",
-        frame_ground_truths.as_ref().unwrap().len()
-    );
+    let num_frames = frame_ground_truths.len();
+    println!("Number of frames: {:?}", num_frames);
 
-    for (i, frame_gt) in frame_ground_truths.unwrap().iter().enumerate() {
-        println!("Frame [{}]: {}", i, frame_gt);
+    for i in 0..num_frames {
+        let gt = get_current_frame(
+            &frame_ground_truths.as_ref(),
+            &frame_ground_truths[i].timestamp,
+        )
+        .unwrap();
+
+        println!("Frame [{}]: {}", i, frame_ground_truths[i]);
+        println!("Corresponding GT: {}", &gt);
+
+        assert_eq!(
+            &gt, &frame_ground_truths[i],
+            "Current GT is not same, but got : {} and {}",
+            &gt, &frame_ground_truths[i]
+        );
     }
 }

@@ -15,10 +15,10 @@ use std::path::PathBuf;
 ///
 /// * `timestamp`   - Timestamp of the frame.
 /// * `objects`     - List of ground truth objects.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FrameGroundTruth {
-    timestamp: NaiveDateTime,
-    objects: Vec<DynamicObject>,
+    pub timestamp: NaiveDateTime,
+    pub objects: Vec<DynamicObject>,
 }
 
 impl Display for FrameGroundTruth {

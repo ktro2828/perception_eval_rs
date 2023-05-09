@@ -32,7 +32,7 @@ impl Display for ObjectState {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct DynamicObject {
     pub frame_id: FrameID,
     pub position: [f64; 3],
@@ -59,6 +59,19 @@ impl Display for DynamicObject {
             self.label,
             self.uuid
         )
+    }
+}
+
+impl PartialEq for DynamicObject {
+    fn eq(&self, other: &Self) -> bool {
+        self.frame_id == other.frame_id
+            && self.position == other.position
+            && self.orientation == other.orientation
+            && self.label == other.label
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
     }
 }
 
