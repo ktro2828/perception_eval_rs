@@ -10,7 +10,10 @@ use crate::{
 ///
 /// # Examples
 /// ```
+/// use perception_eval::object::object3d::DynamicObject;
+///
 /// let object1 = DynamicObject {
+///     timestamp: Naivetime
 ///     frame_id: FrameID::BaseLink,
 ///     position: [1.0, 1.0, 0.0],
 ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -82,7 +85,11 @@ pub fn filter_objects(
 ///
 /// # Examples
 /// ```
+/// use chrono::NaiveTime;
+/// use crate::{filter::is_target_object, label::Label, frame_id::FrameID, object::object3d::DynamicObject};
+///
 /// let object1 = DynamicObject {
+///     timestamp: NaiveTime,
 ///     frame_id: FrameID::BaseLink,
 ///     position: [1.0, 1.0, 0.0],
 ///     orientation: [1.0, 0.0, 0.0, 0.0],

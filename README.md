@@ -79,6 +79,13 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 | `MetricsScore`  | Calculate score for each metrics | :white_check_mark: |
 | `MetricsConfig` | Configuration of `MetricsScore`  | :white_check_mark: |
 
+## Unit tests
+
+Run the following code to execute unit tests written in doc-strings.
+
+```shell
+cargo test --doc --package perception-eval -- [OPTIONS]
+```
 
 ## Documents
 
