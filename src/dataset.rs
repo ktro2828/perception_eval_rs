@@ -75,9 +75,8 @@ fn sample_to_frame(
     // === update objects container ===
     let label_converter = LabelConverter::new(Some("autoware"))?;
     for sample_annotation in sample.sample_annotation_iter() {
-        let instance = nusc.instance_map[&sample_annotation.instance_token].clone();
-        let label =
-            label_converter.convert(&nusc.category_map[&instance.category_token].clone().name);
+        let instance = &nusc.instance_map[&sample_annotation.instance_token];
+        let label = label_converter.convert(&nusc.category_map[&instance.category_token].name);
         let object = DynamicObject {
             timestamp: sample.timestamp,
             frame_id: frame_id.clone(),
