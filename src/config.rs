@@ -28,6 +28,7 @@ pub struct PerceptionEvaluationConfig {
     pub log_dir: PathBuf,
     pub viz_dir: PathBuf,
     pub filter_params: FilterParams,
+    pub metrics_params: MetricsParams,
     pub load_raw_data: bool,
 }
 
@@ -37,6 +38,7 @@ impl PerceptionEvaluationConfig {
         frame_id: &str,
         result_dir: &str,
         filter_params: &FilterParams,
+        metrics_params: &MetricsParams,
         load_raw_data: &bool,
     ) -> Self {
         let dataset_path = Path::new(dataset_path);
@@ -52,6 +54,7 @@ impl PerceptionEvaluationConfig {
             log_dir: log_dir,
             viz_dir: viz_dir,
             filter_params: filter_params.to_owned(),
+            metrics_params: metrics_params.to_owned(),
             load_raw_data: load_raw_data.to_owned(),
         }
     }
