@@ -66,11 +66,15 @@ impl NuScenes {
 
     /// Load the dataset directory.
     ///
+    /// * `version` - Version name of nuscenes. e.g. v.1.0-train.
+    /// * `dir`     - Root directory path of nuscenes dataset.
+    ///
+    /// # Examples
     /// ```rust
     /// use nuscenes::NuScenes;
     ///
     /// fn main() -> NuscenesResult<()> {
-    ///     let dataset = NuScenesDataset::load("1.02", "/path/to/your/dataset")?;
+    ///     let nusc = NuScenes::load("v1.0-train", "/path/to/your/dataset")?;
     ///     OK(())
     /// }
     /// ```
