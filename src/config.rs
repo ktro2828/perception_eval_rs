@@ -1,4 +1,4 @@
-use crate::label::{convert_labels, LabelConverter};
+use crate::label::{convert_labels, LabelConverter, LabelResult};
 use crate::{frame_id::FrameID, label::Label};
 use std::io::Error as IoError;
 use std::path::{Path, PathBuf};
@@ -73,9 +73,9 @@ impl FilterParams {
         max_y_position: f64,
         min_point_number: Option<isize>,
         target_uuids: Option<Vec<String>>,
-    ) -> Self {
-        let label_converter = LabelConverter::new(Some("autoware")).unwrap();
-        let target_labels = convert_labels(target_labels, &label_converter).unwrap();
+    ) -> LabelResult<Self> {
+        let label_converter = LabelConverter::new(Some("autoware"))?;
+        let target_labels = convert_labels(target_labels, &label_converter)?;
         let num_target_labels = target_labels.len();
         let max_x_positions = vec![max_x_position; num_target_labels];
         let max_y_positions = vec![max_y_position; num_target_labels];
@@ -86,13 +86,14 @@ impl FilterParams {
             }
         };
 
-        Self {
+        let ret = Self {
             target_labels: target_labels,
             max_x_positions: max_x_positions,
             max_y_positions: max_y_positions,
             min_point_numbers: min_point_numbers,
             target_uuids: target_uuids,
-        }
+        };
+        Ok(ret)
     }
 }
 
@@ -112,22 +113,23 @@ impl MetricsParams {
         plane_distance_threshold: f64,
         iou2d_threshold: f64,
         iou3d_threshold: f64,
-    ) -> Self {
-        let label_converter = LabelConverter::new(Some("autoware")).unwrap();
-        let target_labels = convert_labels(target_labels, &label_converter).unwrap();
+    ) -> LabelResult<Self> {
+        let label_converter = LabelConverter::new(Some("autoware"))?;
+        let target_labels = convert_labels(target_labels, &label_converter)?;
         let num_target_labels = target_labels.len();
         let center_distance_thresholds = vec![center_distance_threshold; num_target_labels];
         let plane_distance_thresholds = vec![plane_distance_threshold; num_target_labels];
         let iou2d_thresholds = vec![iou2d_threshold; num_target_labels];
         let iou3d_thresholds = vec![iou3d_threshold; num_target_labels];
 
-        Self {
+        let ret = Self {
             target_labels: target_labels,
             center_distance_thresholds: center_distance_thresholds,
             plane_distance_thresholds: plane_distance_thresholds,
             iou2d_thresholds: iou2d_thresholds,
             iou3d_thresholds: iou3d_thresholds,
-        }
+        };
+        Ok(ret)
     }
 }
 
@@ -141,14 +143,14 @@ pub fn get_evaluation_params(
     plane_distance_threshold: f64,
     iou2d_threshold: f64,
     iou3d_threshold: f64,
-) -> (FilterParams, MetricsParams) {
+) -> LabelResult<(FilterParams, MetricsParams)> {
     let f_params = FilterParams::new(
         target_labels,
         max_x_position,
         max_y_position,
         min_point_number,
         target_uuids,
-    );
+    )?;
 
     let m_params = MetricsParams::new(
         target_labels,
@@ -156,7 +158,7 @@ pub fn get_evaluation_params(
         plane_distance_threshold,
         iou2d_threshold,
         iou3d_threshold,
-    );
+    )?;
 
-    (f_params, m_params)
+    Ok((f_params, m_params))
 }
