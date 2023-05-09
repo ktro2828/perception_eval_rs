@@ -4,6 +4,7 @@ use nalgebra::SMatrix;
 use crate::{
     frame_id::FrameID,
     label::Label,
+    math::{quaternion2euler, quaternion2rotation, PositionMatrix, RotationMatrix},
     point::{distance_points, distance_points_bev},
 };
 use std::{
@@ -11,9 +12,7 @@ use std::{
     fmt::{Display, Formatter, Result as FormatResult},
 };
 
-pub type RotationMatrix<T> = SMatrix<T, 3, 3>;
-type PositionMatrix = SMatrix<f64, 1, 3>;
-type CornerMatrix = SMatrix<f64, 4, 3>;
+pub(crate) type CornerMatrix = SMatrix<f64, 4, 3>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ObjectState {
@@ -169,18 +168,7 @@ impl DynamicObject {
     /// assert_eq!(rot, eye);
     /// ```
     pub fn rotation_matrix(&self) -> RotationMatrix<f64> {
-        let [q0, q1, q2, q3] = self.orientation;
-        RotationMatrix::new(
-            2.0 * (q0.powi(2) + q1.powi(2)) - 1.0,
-            2.0 * (q1 * q2 - q0 * q3),
-            2.0 * (q1 * q3 + q0 * q2),
-            2.0 * (q1 * q2 + q0 * q3),
-            2.0 * (q0.powi(2) + q2.powi(2)) - 1.0,
-            2.0 * (q2 * q3 - q0 * q1),
-            2.0 * (q1 * q3 - q0 * q2),
-            2.0 * (q2 * q3 + q0 * q1),
-            2.0 * (q0.powi(2) + q3.powi(2)) - 1.0,
-        )
+        quaternion2rotation(&self.orientation)
     }
 
     /// Returns euler angles in [roll, pitch yaw] order.
@@ -204,15 +192,7 @@ impl DynamicObject {
     /// asset_eq!(euler, [0.0, 0.0, 0.0]);
     /// ```
     pub fn euler(&self) -> [f64; 3] {
-        let [q0, q1, q2, q3] = self.orientation;
-        let roll = (2.0 * (q0 * q1 + q2 * q3) / (1.0 - 2.0 * (q1.powi(2) + q2.powi(2)))).atan();
-        let pitch = -0.5 * PI
-            + 2.0
-                * ((1.0 + 2.0 * (q0 * q2 - q1 * q3)) / (1.0 - 2.0 * (q0 * q2 - q1 * q3)))
-                    .sqrt()
-                    .atan();
-        let yaw = (2.0 * (q0 * q3 + q1 * q2) / (1.0 - 2.0 * (q2.powi(2) + q3.powi(2)))).atan();
-        [roll, pitch, yaw]
+        quaternion2euler(&self.orientation)
     }
 
     /// Returns footprint of object's box.

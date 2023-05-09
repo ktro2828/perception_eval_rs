@@ -7,6 +7,7 @@ pub mod label;
 pub mod logger;
 // pub mod manager; // WIP
 pub mod matching;
+pub mod math;
 pub mod metrics; // WIP
 pub mod object;
 pub mod point;

@@ -1,10 +1,13 @@
 pub mod nuscenes;
 
-use self::nuscenes::{error::NuScenesResult, internal::SampleInternal, NuScenes, WithDataset};
+use self::nuscenes::{
+    error::NuScenesResult, internal::SampleInternal, schema::SampleData, NuScenes, WithDataset,
+};
 use crate::{
     evaluation_task::EvaluationTask,
     frame_id::FrameID,
     label::{LabelConverter, LabelResult},
+    math::rotate,
     object::object3d::DynamicObject,
 };
 use chrono::naive::NaiveDateTime;
@@ -60,6 +63,21 @@ pub fn load_dataset(
 }
 
 /// Convert NuScenes sample into `FrameGroundTruth` instance.
+///
+/// TODO: Transform position and rotation into BaseLink
+///
+/// let mut position = sample_annotation.translation;
+/// let mut orientation = sample_annotation.rotation;
+///
+/// // How should I get corresponding ego_pose??
+/// let ego_position = ego_pose.translation;
+/// let ego_orientation = ego_pose.rotation;
+///
+/// if *frame_id == FrameID::BaseLink {
+///     position = rotate(&position, &ego_orientation);
+///     orientation = rotate_q(&orientation, &ego_orientation);
+/// }
+///
 ///
 /// * `nusc`        - NuScenes instance.
 /// * `sample`      - Sample annotated in meta data.
