@@ -41,6 +41,15 @@ impl FromStr for EvaluationTask {
 
 impl EvaluationTask {
     /// Returns whether current task is for 3D evaluation.
+    ///
+    /// # Examples
+    /// ```
+    /// use perception_eval::evaluation_task::EvaluationTask;
+    ///
+    /// let task = EvaluationTask::Detection;
+    ///
+    /// assert_eq!(task.is_3d(), true);
+    /// ```
     pub fn is_3d(&self) -> bool {
         matches!(
             self,
@@ -49,6 +58,15 @@ impl EvaluationTask {
     }
 
     /// Returns whether current task is for 2D evaluation.
+    ///
+    /// # Examples
+    /// ```
+    /// use perception_eval::evaluation_task::EvaluationTask;
+    ///
+    /// let task = EvaluationTask::Detection;
+    ///
+    /// assert_eq!(task.is_2d(), false);
+    /// ```
     pub fn is_2d(&self) -> bool {
         !self.is_3d()
     }
@@ -58,6 +76,15 @@ impl EvaluationTask {
 /// If unexpected task name is input, returns `EvaluationTaskError::ValueError`.
 ///
 /// * `task_name`   - Name of task in string.
+///
+/// # Examples
+/// ```
+/// use perception_eval::evaluation_task::{EvaluationTask, set_task};
+///
+/// let task = set_task("detection").unwrap();
+///
+/// assert_eq!(task, EvaluationTask::Detection);
+/// ```
 pub fn set_task(task_name: &str) -> EvaluationTaskResult<EvaluationTask> {
     EvaluationTask::from_str(task_name)
 }

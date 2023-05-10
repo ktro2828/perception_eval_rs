@@ -89,26 +89,141 @@ impl DynamicObject {
     }
 
     /// Returns name of label in string.
+    ///
+    /// # Examples
+    /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    ///
+    /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let name = object.label_name();
+    ///
+    /// assert_eq!(name, "Car");
+    /// ```
     pub fn label_name(&self) -> String {
         self.label.to_string()
     }
 
     /// Returns area of box in BEV.
+    ///
+    /// # Examples
+    /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    ///
+    /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let area = object.area();
+    ///
+    /// assert_eq!(area, 2.0);
+    /// ```
     pub fn area(&self) -> f64 {
         self.size[0] * self.size[1]
     }
 
     /// Returns volume of box.
+    ///
+    /// # Examples
+    /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    ///
+    /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let volume = object.volume();
+    ///
+    /// assert_eq!(volume, 2.0);
+    /// ```
     pub fn volume(&self) -> f64 {
         self.area() * self.size[2]
     }
 
     /// Returns distance from origin where the object is with respect to.
+    ///
+    /// # Examples
+    /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    ///
+    /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let distance = object.distance();
+    ///
+    /// assert_eq!(distance, 2.0_f64.sqrt());
+    /// ```
     pub fn distance(&self) -> f64 {
         distance_points(&self.position, &[0.0; 3])
     }
 
     /// Returns distance in BEV from origin where the object is with respect to.
+    ///
+    /// # Examples
+    /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    ///
+    /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let distance_bev = object.distance_bev();
+    ///
+    /// assert_eq!(distance_bev, 2.0_f64.sqrt());
+    /// ```
     pub fn distance_bev(&self) -> f64 {
         distance_points_bev(&self.position, &[0.0; 3])
     }
@@ -116,6 +231,29 @@ impl DynamicObject {
     /// Returns distance from the other point.
     ///
     /// * `point`   - 3D coordinates position.
+    ///
+    /// # Examples
+    /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    ///
+    /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let distance = object.distance_from(&[1.0, 1.0, 1.0]);
+    ///
+    /// assert_eq!(distance, 1.0);
+    /// ```
     pub fn distance_from(&self, point: &[f64; 3]) -> f64 {
         distance_points(&self.position, point)
     }
@@ -123,10 +261,57 @@ impl DynamicObject {
     /// Returns distance in BEV from the other point.
     ///
     /// * `point`   - 3D coordinates position.
+    ///
+    /// # Examples
+    /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    ///
+    /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let distance_bev = object.distance_bev_from(&[1.0, 1.0, 1.0]);
+    ///
+    /// assert_eq!(distance_bev, 0.0);
+    /// ```
     pub fn distance_bev_from(&self, point: &[f64; 3]) -> f64 {
         distance_points_bev(&self.position, point)
     }
 
+    /// Returns object's heading angle.
+    ///
+    /// # Examples
+    /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    ///
+    /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+    ///     frame_id: FrameID::BaseLink,
+    ///     position: [1.0, 1.0, 0.0],
+    ///     orientation: [1.0, 0.0, 0.0, 0.0],
+    ///     size: [2.0, 1.0, 1.0],
+    ///     velocity: None,
+    ///     confidence: 1.0,
+    ///     label: Label::Car,
+    ///     pointcloud_num: Some(1000),
+    ///     uuid: Some("111".to_string()),
+    /// };
+    ///
+    /// let heading = object.heading();
+    ///
+    /// assert_eq!(heading, 0.0);
+    /// ```
     pub fn heading(&self) -> f64 {
         let [_, _, mut yaw] = self.euler();
 
@@ -145,7 +330,11 @@ impl DynamicObject {
     ///
     /// # Examples
     /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, math::RotationMatrix, object::object3d::DynamicObject};
+    ///
     /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
     ///     frame_id: FrameID::BaseLink,
     ///     position: [1.0, 1.0, 0.0],
     ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -175,7 +364,11 @@ impl DynamicObject {
     ///
     /// # Examples
     /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    ///
     /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
     ///     frame_id: FrameID::BaseLink,
     ///     position: [1.0, 1.0, 0.0],
     ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -189,7 +382,7 @@ impl DynamicObject {
     ///
     /// let euler = object.euler();
     ///
-    /// asset_eq!(euler, [0.0, 0.0, 0.0]);
+    /// assert_eq!(euler, [0.0, 0.0, 0.0]);
     /// ```
     pub fn euler(&self) -> [f64; 3] {
         quaternion2euler(&self.orientation)
@@ -199,7 +392,11 @@ impl DynamicObject {
     ///
     /// # Examples
     /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    ///
     /// let object = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
     ///     frame_id: FrameID::BaseLink,
     ///     position: [1.0, 1.0, 0.0],
     ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -213,7 +410,10 @@ impl DynamicObject {
     ///
     /// let footprint = object.footprint();
     ///
-    /// asset_eq!(&footprint, [[2.0, 2.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 0.0], [2.0, 0.0, 0.0]]);
+    /// assert_eq!(footprint[0], [2.0, 2.0, 0.0]);
+    /// assert_eq!(footprint[1], [0.0, 2.0, 0.0]);
+    /// assert_eq!(footprint[2], [0.0, 0.0, 0.0]);
+    /// assert_eq!(footprint[3], [2.0, 0.0, 0.0])
     /// ```
     pub fn footprint(&self) -> Vec<[f64; 3]> {
         let center2corners = CornerMatrix::new(

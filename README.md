@@ -84,6 +84,10 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 Run the following code to execute unit tests written in doc-strings.
 
 ```shell
+# test all modules (public&private)
+cargo test
+
+# test only public modules that tests are written in doc-strings
 cargo test --doc --package perception-eval -- [OPTIONS]
 ```
 

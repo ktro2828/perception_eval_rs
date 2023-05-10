@@ -71,7 +71,7 @@ impl NuScenes {
     ///
     /// # Examples
     /// ```rust
-    /// use nuscenes::NuScenes;
+    /// use perception_eval::dataset::nuscenes::{NuScenes, NuScenesResult};
     ///
     /// fn main() -> NuscenesResult<()> {
     ///     let nusc = NuScenes::load("v1.0-train", "/path/to/your/dataset")?;

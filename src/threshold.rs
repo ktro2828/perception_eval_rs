@@ -18,10 +18,12 @@ impl<'a> LabelThreshold<'a> {
     ///
     /// # Example
     /// ```
+    /// use perception_eval::{label::Label, threshold::LabelThreshold};
+    ///
     /// let label = Label::Car;
     /// let target_labels = vec![Label::Car, Label::Bus, Label::Pedestrian];
     ///
-    /// let converter = LabelConverter::new(&label, &target_labels);
+    /// let label_threshold = LabelThreshold::new(&label, &target_labels);
     /// ```
     pub fn new(label: &'a Label, target_labels: &'a Vec<Label>) -> Self {
         Self {
@@ -37,14 +39,16 @@ impl<'a> LabelThreshold<'a> {
     ///
     /// # Example
     /// ```
+    /// use perception_eval::{label::Label, threshold::LabelThreshold};
+    ///
     /// let label = Label::Car;
     /// let target_labels = vec![Label::Car, Label::Bus, Label::Pedestrian];
     ///
-    /// let converter = LabelConverter::new(&label, &target_labels);
+    /// let label_threshold = LabelThreshold::new(&label, &target_labels);
     ///
     /// let thresholds = vec![1.0, 2.0, 3.0];
     ///
-    /// let threshold = converter.get_label_threshold(&thresholds);
+    /// let threshold = label_threshold.get_threshold(&thresholds).unwrap();
     /// assert_eq!(threshold, 1.0);
     /// ```
     pub fn get_threshold<T>(&self, thresholds: &Vec<T>) -> Option<T>
@@ -64,11 +68,13 @@ impl<'a> LabelThreshold<'a> {
 ///
 /// # Example
 /// ```
+/// use perception_eval::{label::Label, threshold::get_label_threshold};
+///
 /// let label = Label::Car;
 /// let target_labels = vec![Label::Car, Label::Bus, Label::Pedestrian];
 /// let thresholds = vec![1.0, 2.0, 3.0];
 ///
-/// let threshold = get_label_threshold(&label, &target_labels, &thresholds);
+/// let threshold = get_label_threshold(&label, &target_labels, &thresholds).unwrap();
 /// assert_eq!(threshold, 1.0);
 /// ```
 pub fn get_label_threshold<T>(

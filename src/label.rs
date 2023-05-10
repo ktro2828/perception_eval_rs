@@ -51,6 +51,8 @@ impl<'a> LabelConverter<'a> {
     ///
     /// # Examples
     /// ```
+    /// use perception_eval::label::LabelConverter;
+    ///
     /// let label_prefix = Some("autoware");
     /// let converter = LabelConverter::new(label_prefix).unwrap();
     /// ```
@@ -125,6 +127,21 @@ impl<'a> LabelConverter<'a> {
         Ok(ret)
     }
 
+    /// Convert string label name into `Label` instance.
+    ///
+    /// * `name`    - Name of label in string.
+    ///
+    /// # Examples
+    /// ```
+    /// use perception_eval::label::{LabelConverter, Label};
+    ///
+    /// let label_prefix = Some("autoware");
+    /// let converter = LabelConverter::new(label_prefix).unwrap();
+    ///
+    /// let label = converter.convert("car");
+    ///
+    /// assert_eq!(label, Label::Car);
+    /// ```
     pub fn convert(&self, name: &str) -> Label {
         match self.pairs.contains_key(name) {
             true => self.pairs[name].clone(),
@@ -143,6 +160,8 @@ impl<'a> LabelConverter<'a> {
 ///
 /// # Examples
 /// ```
+/// use perception_eval::label::{convert_labels, LabelConverter, Label};
+///
 /// let target_labels = vec!["car", "bus", "pedestrian"];
 /// let label_prefix = Some("autoware");
 /// let converter = LabelConverter::new(label_prefix).unwrap();

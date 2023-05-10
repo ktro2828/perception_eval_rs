@@ -10,10 +10,11 @@ use crate::{
 ///
 /// # Examples
 /// ```
-/// use perception_eval::object::object3d::DynamicObject;
+/// use chrono::NaiveDateTime;
+/// use perception_eval::{config::FilterParams, filter::filter_objects, frame_id::FrameID, label::Label, object::object3d::DynamicObject};
 ///
 /// let object1 = DynamicObject {
-///     timestamp: Naivetime
+///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
 ///     frame_id: FrameID::BaseLink,
 ///     position: [1.0, 1.0, 0.0],
 ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -26,8 +27,9 @@ use crate::{
 /// };
 ///
 /// let object2 = DynamicObject {
+///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
 ///     frame_id: FrameID::BaseLink,
-///     position: [1.0, 1.0, 0.0],
+///     position: [10.0, 10.0, 0.0],
 ///     orientation: [1.0, 0.0, 0.0, 0.0],
 ///     size: [2.0, 1.0, 1.0],
 ///     velocity: None,
@@ -37,6 +39,12 @@ use crate::{
 ///     uuid: Some("111".to_string()),
 /// };
 ///
+///
+/// let objects = vec![object1.clone(), object2];
+/// let filter_params = FilterParams::new(&vec!["car"], 5.0, 5.0, None, None).unwrap();
+/// let ret = filter_objects(&objects, false, &filter_params);
+///
+/// assert_eq!(ret, vec![object1]);
 /// ```
 pub fn filter_objects(
     objects: &Vec<DynamicObject>,
@@ -82,42 +90,6 @@ pub fn filter_objects(
 /// * `min_point_numbers`   - List of minimum number of points the object's box
 ///                           must contain for corresponding label.
 /// * `target_uuids`        - List of instance IDs to be kept.
-///
-/// # Examples
-/// ```
-/// use chrono::NaiveTime;
-/// use crate::{filter::is_target_object, label::Label, frame_id::FrameID, object::object3d::DynamicObject};
-///
-/// let object1 = DynamicObject {
-///     timestamp: NaiveTime,
-///     frame_id: FrameID::BaseLink,
-///     position: [1.0, 1.0, 0.0],
-///     orientation: [1.0, 0.0, 0.0, 0.0],
-///     size: [2.0, 1.0, 1.0],
-///     velocity: None,
-///     confidence: 1.0,
-///     label: Label::Car,
-///     pointcloud_num: Some(1000),
-///     uuid: Some("111".to_string()),
-/// };
-///
-/// let target_labels = vec![Label::Car, Label::Pedestrian];
-/// let max_x_positions = vec![20.0, 10.0];
-/// let max_y_positions = vec![20.0, 10.0];
-/// let min_point_numbers = vec![100, 100];
-/// let target_uuids = None;
-///
-/// let is_target = is_target_object(
-///     &object1,
-///     &target_labels,
-///     &max_x_positions,
-///     &max_y_positions,
-///     &min_point_numbers,
-///     &target_uuids,
-/// );
-///
-/// assert_eq!(is_target, true);
-/// ```
 fn is_target_object(
     object: &DynamicObject,
     target_labels: &Vec<Label>,
@@ -185,4 +157,45 @@ fn is_target_object(
     };
 
     is_target
+}
+
+#[cfg(test)]
+
+mod tests {
+    use crate::{
+        filter::is_target_object, frame_id::FrameID, label::Label, object::object3d::DynamicObject,
+    };
+    use chrono::NaiveDateTime;
+    #[test]
+    fn test_is_target_object() {
+        let object1 = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+
+        let target_labels = vec![Label::Car, Label::Pedestrian];
+        let max_x_positions = vec![20.0, 10.0];
+        let max_y_positions = vec![20.0, 10.0];
+        let min_point_numbers = Some(vec![100, 100]);
+        let target_uuids = None;
+
+        let is_target = is_target_object(
+            &object1,
+            &target_labels,
+            &max_x_positions,
+            &max_y_positions,
+            &min_point_numbers,
+            &target_uuids,
+        );
+
+        assert_eq!(is_target, true);
+    }
 }

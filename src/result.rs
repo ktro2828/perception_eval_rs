@@ -27,7 +27,11 @@ impl PerceptionResult {
     ///
     /// # Examples
     /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject, result::PerceptionResult};
+    ///
     /// let estimation = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
     ///     frame_id: FrameID::BaseLink,
     ///     position: [1.0, 1.0, 0.0],
     ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -40,6 +44,7 @@ impl PerceptionResult {
     /// };
     ///
     /// let ground_truth = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
     ///     frame_id: FrameID::BaseLink,
     ///     position: [1.0, 1.0, 0.0],
     ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -54,7 +59,7 @@ impl PerceptionResult {
     /// // Get TP or FP result
     /// let result = PerceptionResult::new(estimation, Some(ground_truth));
     /// // Get FP result
-    /// let fp_result = PerceptionResult::new(estimation, None);
+    /// // let fp_result = PerceptionResult::new(estimation, None);
     /// ```
     pub fn new(
         estimated_object: DynamicObject,
@@ -71,7 +76,11 @@ impl PerceptionResult {
     ///
     /// # Examples
     /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{frame_id::FrameID, label::Label, object::object3d::DynamicObject, result::PerceptionResult};
+    ///
     /// let estimation = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
     ///     frame_id: FrameID::BaseLink,
     ///     position: [1.0, 1.0, 0.0],
     ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -84,6 +93,7 @@ impl PerceptionResult {
     /// };
     ///
     /// let ground_truth = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
     ///     frame_id: FrameID::BaseLink,
     ///     position: [1.0, 1.0, 0.0],
     ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -116,7 +126,17 @@ impl PerceptionResult {
     ///
     /// # Examples
     /// ```
+    /// use chrono::NaiveDateTime;
+    /// use perception_eval::{
+    ///     frame_id::FrameID,
+    ///     label::Label,
+    ///     matching::MatchingMode,
+    ///     object::object3d::DynamicObject,
+    ///     result::PerceptionResult
+    /// };
+    ///
     /// let estimation = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
     ///     frame_id: FrameID::BaseLink,
     ///     position: [1.0, 1.0, 0.0],
     ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -129,6 +149,7 @@ impl PerceptionResult {
     /// };
     ///
     /// let ground_truth = DynamicObject {
+    ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
     ///     frame_id: FrameID::BaseLink,
     ///     position: [1.0, 1.0, 0.0],
     ///     orientation: [1.0, 0.0, 0.0, 0.0],
@@ -142,7 +163,7 @@ impl PerceptionResult {
     ///
     /// let result = PerceptionResult::new(estimation, Some(ground_truth));
     ///
-    /// let is_tp = result.is_result_correct(&MatchingMode::CenterDistance, 1.0);
+    /// let is_tp = result.is_result_correct(&MatchingMode::CenterDistance, &1.0).unwrap();
     /// assert_eq!(is_tp, true);
     /// ```
     pub fn is_result_correct(
