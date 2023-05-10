@@ -53,20 +53,12 @@ impl<'a> LabelConverter<'a> {
     /// ```
     /// use perception_eval::label::LabelConverter;
     ///
-    /// let label_prefix = Some("autoware");
-    /// let converter = LabelConverter::new(label_prefix).unwrap();
+    /// let converter = LabelConverter::new("autoware").unwrap();
     /// ```
-    pub fn new(label_prefix: Option<&str>) -> LabelResult<Self> {
+    pub fn new(label_prefix: &str) -> LabelResult<Self> {
         let mut pairs = HashMap::new();
 
-        let prefix = {
-            match label_prefix {
-                Some(value) => value,
-                None => "autoware",
-            }
-        };
-
-        match prefix {
+        match label_prefix {
             "autoware" => {
                 // car
                 pairs.insert("car", Label::Car);
@@ -121,7 +113,7 @@ impl<'a> LabelConverter<'a> {
                 pairs.insert("static_object.bicycle_rack", Label::Unknown);
                 pairs.insert("static_object.bollard", Label::Unknown);
             }
-            _ => Err(LabelError::ValueError(prefix.to_string()))?,
+            _ => Err(LabelError::ValueError(label_prefix.to_string()))?,
         }
         let ret = Self { pairs: pairs };
         Ok(ret)
@@ -135,8 +127,7 @@ impl<'a> LabelConverter<'a> {
     /// ```
     /// use perception_eval::label::{LabelConverter, Label};
     ///
-    /// let label_prefix = Some("autoware");
-    /// let converter = LabelConverter::new(label_prefix).unwrap();
+    /// let converter = LabelConverter::new("autoware").unwrap();
     ///
     /// let label = converter.convert("car");
     ///
@@ -163,8 +154,7 @@ impl<'a> LabelConverter<'a> {
 /// use perception_eval::label::{convert_labels, LabelConverter, Label};
 ///
 /// let target_labels = vec!["car", "bus", "pedestrian"];
-/// let label_prefix = Some("autoware");
-/// let converter = LabelConverter::new(label_prefix).unwrap();
+/// let converter = LabelConverter::new("autoware").unwrap();
 ///
 /// let result = convert_labels(&target_labels, &converter).unwrap();
 /// assert_eq!(result, vec![Label::Car, Label::Bus, Label::Pedestrian]);

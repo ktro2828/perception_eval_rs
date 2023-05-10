@@ -91,7 +91,7 @@ fn sample_to_frame(
 
     // TODO
     // === update objects container ===
-    let label_converter = LabelConverter::new(Some("autoware"))?;
+    let label_converter = LabelConverter::new("autoware")?;
     for sample_annotation in sample.sample_annotation_iter() {
         let instance = &nusc.instance_map[&sample_annotation.instance_token];
         let label = label_converter.convert(&nusc.category_map[&instance.category_token].name);

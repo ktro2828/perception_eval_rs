@@ -80,7 +80,7 @@ impl FilterParams {
         min_point_number: Option<isize>,
         target_uuids: Option<Vec<String>>,
     ) -> LabelResult<Self> {
-        let label_converter = LabelConverter::new(Some("autoware"))?;
+        let label_converter = LabelConverter::new("autoware")?;
         let target_labels = convert_labels(target_labels, &label_converter)?;
         let num_target_labels = target_labels.len();
         let max_x_positions = vec![max_x_position; num_target_labels];
@@ -120,7 +120,7 @@ impl MetricsParams {
         iou2d_threshold: f64,
         iou3d_threshold: f64,
     ) -> LabelResult<Self> {
-        let label_converter = LabelConverter::new(Some("autoware"))?;
+        let label_converter = LabelConverter::new("autoware")?;
         let target_labels = convert_labels(target_labels, &label_converter)?;
         let num_target_labels = target_labels.len();
         let center_distance_thresholds = vec![center_distance_threshold; num_target_labels];
