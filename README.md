@@ -79,18 +79,6 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 | `MetricsScore`  | Calculate score for each metrics | :white_check_mark: |
 | `MetricsConfig` | Configuration of `MetricsScore`  | :white_check_mark: |
 
-## Unit tests
-
-Run the following code to execute unit tests written in doc-strings.
-
-```shell
-# test all modules (public&private)
-cargo test
-
-# test only public modules that tests are written in doc-strings
-cargo test --doc --package perception-eval -- [OPTIONS]
-```
-
 ## Documents
 
 Run the following code to see the document.
@@ -107,6 +95,18 @@ Run the following code to run examples.
 # if you want see details
 # $ export RUST_BACKTRACE=1 [or "full"]
 $ cargo run --example <FILE_NAME> [-- <ARGUMENTS>]
+```
+
+## Unit tests
+
+Run the following code to execute unit tests written in doc-strings.
+
+```shell
+# test all modules (public&private)
+cargo test -- [OPTIONS]
+
+# test only public modules that tests are written in doc-strings
+cargo test --doc --package perception-eval -- [OPTIONS]
 ```
 
 ## References
