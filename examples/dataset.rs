@@ -9,7 +9,7 @@ use perception_eval::{
 };
 use std::error::Error;
 
-#[derive(Debug, Parser)]
+#[derive(Parser)]
 struct Args {
     #[structopt(short, long)]
     version: String,
@@ -24,11 +24,13 @@ fn main() -> Result<()> {
     let log_dir = Path::new(&log_dir_name);
     configure_logger(log_dir, log::Level::Debug)?;
     let Args { version, data_root } = Args::parse();
-    let evaluation_task = EvaluationTask::Detection;
-    let frame_id = FrameID::BaseLink;
 
-    let frame_ground_truths =
-        dataset::load_dataset(version, data_root, &evaluation_task, &frame_id)?;
+    let frame_ground_truths = dataset::load_dataset(
+        version,
+        data_root,
+        &EvaluationTask::Detection,
+        &FrameID::BaseLink,
+    )?;
 
     let num_frames = frame_ground_truths.len();
     println!("Number of frames: {:?}", num_frames);
