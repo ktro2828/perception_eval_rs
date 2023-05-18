@@ -11,9 +11,9 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct PerceptionEvaluationManager<'a> {
-    config: &'a PerceptionEvaluationConfig,
-    frame_ground_truths: Vec<FrameGroundTruth>,
-    frame_results: Vec<PerceptionFrameResult<'a>>,
+    pub config: &'a PerceptionEvaluationConfig,
+    pub frame_ground_truths: Vec<FrameGroundTruth>,
+    pub frame_results: Vec<PerceptionFrameResult<'a>>,
 }
 
 impl<'a> PerceptionEvaluationManager<'a> {
@@ -54,7 +54,7 @@ impl<'a> PerceptionEvaluationManager<'a> {
         Ok(())
     }
 
-    pub fn get_frame_ground_truth(&self, timestamp: NaiveDateTime) -> Option<FrameGroundTruth> {
+    pub fn get_frame_ground_truth(&self, timestamp: &NaiveDateTime) -> Option<FrameGroundTruth> {
         get_current_frame(&self.frame_ground_truths, &timestamp)
     }
 

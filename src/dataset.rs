@@ -1,13 +1,10 @@
 pub mod nuscenes;
 
-use self::nuscenes::{
-    error::NuScenesResult, internal::SampleInternal, schema::SampleData, NuScenes, WithDataset,
-};
+use self::nuscenes::{error::NuScenesResult, internal::SampleInternal, NuScenes, WithDataset};
 use crate::{
     evaluation_task::EvaluationTask,
     frame_id::FrameID,
     label::{LabelConverter, LabelResult},
-    math::rotate,
     object::object3d::DynamicObject,
 };
 use chrono::naive::NaiveDateTime;

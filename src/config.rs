@@ -1,5 +1,6 @@
 use crate::evaluation_task::EvaluationTask;
 use crate::label::{convert_labels, LabelConverter, LabelResult};
+use crate::logger::configure_logger;
 use crate::metrics::config::MetricsConfig;
 use crate::{frame_id::FrameID, label::Label};
 use std::io::Error as IoError;
@@ -56,6 +57,8 @@ impl PerceptionEvaluationConfig {
         let log_dir = result_dir.join("log");
         let viz_dir = result_dir.join("visualize");
         let metrics_config = metrics_params.get_metrics_config(&evaluation_task);
+
+        configure_logger(&log_dir, log::Level::Debug).unwrap();
 
         Self {
             version: version.to_owned(),
