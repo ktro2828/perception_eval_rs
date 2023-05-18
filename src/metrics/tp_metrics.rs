@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use crate::result::PerceptionResult;
+use crate::result::object::PerceptionResult;
 
 pub(super) trait TPMetrics {
     fn get_value(&self, result: &PerceptionResult) -> f64;

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{matching::MatchingMode, result::PerceptionResult};
+use crate::{matching::MatchingMode, result::object::PerceptionResult};
 
 use super::{config::MetricsConfig, detection::DetectionMetricsScore};
 

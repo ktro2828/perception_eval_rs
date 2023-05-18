@@ -1,5 +1,5 @@
 use super::tp_metrics::{TPMetrics, TPMetricsAP, TPMetricsAPH};
-use crate::{label::Label, matching::MatchingMode, result::PerceptionResult};
+use crate::{label::Label, matching::MatchingMode, result::object::PerceptionResult};
 use std::collections::HashMap;
 
 #[derive(Debug)]

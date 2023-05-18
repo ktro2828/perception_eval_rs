@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::{
-    config::FilterParams, label::Label, object::object3d::DynamicObject, result::PerceptionResult,
-    threshold::LabelThreshold,
+    config::FilterParams, label::Label, object::object3d::DynamicObject,
+    result::object::PerceptionResult, threshold::LabelThreshold,
 };
 
 /// Filter objects with `FilterParams`. Returns list of kept objects.
