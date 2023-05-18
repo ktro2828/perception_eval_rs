@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 use crate::{
-    config::FilterParams, label::Label, object::object3d::DynamicObject, threshold::LabelThreshold,
+    config::FilterParams, label::Label, object::object3d::DynamicObject, result::PerceptionResult,
+    threshold::LabelThreshold,
 };
 
 /// Filter objects with `FilterParams`. Returns list of kept objects.
@@ -159,13 +162,112 @@ fn is_target_object(
     is_target
 }
 
+/// Returns hashmap that key is label name and value is list of objects that have same label.
+///
+/// * `objects`         - List of objects.
+/// * `target_labels`   - List of target labels.
+pub(crate) fn divide_objects(
+    objects: &Vec<DynamicObject>,
+    target_labels: &Vec<Label>,
+) -> HashMap<String, Vec<DynamicObject>> {
+    let mut ret: HashMap<String, Vec<DynamicObject>> = HashMap::new();
+
+    for label in target_labels {
+        ret.insert(label.to_string(), Vec::new());
+    }
+
+    for obj in objects {
+        match ret.get(&obj.label_name()) {
+            Some(v) => v.push(obj.clone()),
+            None => (),
+        }
+    }
+    ret
+}
+
+/// Returns hashmap that key is label name and value is the number objects that have same label.
+///
+/// * `objects`         - List of objects.
+/// * `target_labels`   - List of target labels.
+pub(crate) fn divide_objects_to_num(
+    objects: &Vec<DynamicObject>,
+    target_labels: &Vec<Label>,
+) -> HashMap<String, usize> {
+    let mut ret: HashMap<String, usize> = HashMap::new();
+
+    for label in target_labels {
+        ret.insert(label.to_string(), 0);
+    }
+
+    for obj in objects {
+        match ret.get_mut(&obj.label_name()) {
+            Some(v) => *v += 1,
+            None => (),
+        }
+    }
+    ret
+}
+
+/// Returns hashmap that key is label name and value is list of results that estimated object have same label.
+///
+/// * `results`         - List of results.
+/// * `target_labels`   - List of target labels.
+pub(crate) fn divide_results(
+    results: &Vec<PerceptionResult>,
+    target_labels: &Vec<Label>,
+) -> HashMap<String, Vec<PerceptionResult>> {
+    let mut ret: HashMap<String, Vec<PerceptionResult>> = HashMap::new();
+
+    for label in target_labels {
+        ret.insert(label.to_string(), Vec::new());
+    }
+
+    for result in results {
+        match ret.get(&result.estimated_object.label_name()) {
+            Some(v) => v.push(result.clone()),
+            None => (),
+        }
+    }
+    ret
+}
+
+/// Returns hashmap that key is label name and value is the number of results that estimated object have same label.
+///
+/// * `results`         - List of results.
+/// * `target_labels`   - List of target labels.
+pub(crate) fn divide_results_to_num(
+    results: &Vec<PerceptionResult>,
+    target_labels: &Vec<Label>,
+) -> HashMap<String, usize> {
+    let mut ret: HashMap<String, usize> = HashMap::new();
+
+    for label in target_labels {
+        ret.insert(label.to_string(), 0);
+    }
+
+    for result in results {
+        match ret.get_mut(&result.estimated_object.label_name()) {
+            Some(v) => *v += 1,
+            None => (),
+        }
+    }
+    ret
+}
+
 #[cfg(test)]
 
 mod tests {
     use crate::{
-        filter::is_target_object, frame_id::FrameID, label::Label, object::object3d::DynamicObject,
+        filter::{divide_objects, is_target_object},
+        frame_id::FrameID,
+        label::Label,
+        object::object3d::DynamicObject,
     };
     use chrono::NaiveDateTime;
+
+    #[test]
+    fn test_divide_objects() {}
+
     #[test]
     fn test_is_target_object() {
         let object1 = DynamicObject {
