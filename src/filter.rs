@@ -177,7 +177,7 @@ pub(crate) fn divide_objects(
     }
 
     for obj in objects {
-        match ret.get(&obj.label_name()) {
+        match ret.get_mut(&obj.label_name()) {
             Some(v) => v.push(obj.clone()),
             None => (),
         }
@@ -223,7 +223,7 @@ pub(crate) fn divide_results(
     }
 
     for result in results {
-        match ret.get(&result.estimated_object.label_name()) {
+        match ret.get_mut(&result.estimated_object.label_name()) {
             Some(v) => v.push(result.clone()),
             None => (),
         }
@@ -258,7 +258,7 @@ pub(crate) fn divide_results_to_num(
 
 mod tests {
     use crate::{
-        filter::{divide_objects, is_target_object},
+        filter::{divide_objects, divide_objects_to_num, is_target_object},
         frame_id::FrameID,
         label::Label,
         object::object3d::DynamicObject,
@@ -266,11 +266,50 @@ mod tests {
     use chrono::NaiveDateTime;
 
     #[test]
-    fn test_divide_objects() {}
+    fn test_divide_objects() {
+        let object = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+
+        let object_map =
+            divide_objects(&vec![object.clone()], &vec![Label::Car, Label::Pedestrian]);
+        assert_eq!(*object_map.get("Car").unwrap(), vec![object]);
+        assert_eq!(*object_map.get("Pedestrian").unwrap(), vec![]);
+    }
+
+    #[test]
+    fn test_divide_objects_to_num() {
+        let object = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+
+        let object_num_map =
+            divide_objects_to_num(&vec![object], &vec![Label::Car, Label::Pedestrian]);
+        assert_eq!(*object_num_map.get("Car").unwrap(), 1);
+        assert_eq!(*object_num_map.get("Pedestrian").unwrap(), 0);
+    }
 
     #[test]
     fn test_is_target_object() {
-        let object1 = DynamicObject {
+        let object = DynamicObject {
             timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
             frame_id: FrameID::BaseLink,
             position: [1.0, 1.0, 0.0],
@@ -290,7 +329,7 @@ mod tests {
         let target_uuids = None;
 
         let is_target = is_target_object(
-            &object1,
+            &object,
             &target_labels,
             &max_x_positions,
             &max_y_positions,

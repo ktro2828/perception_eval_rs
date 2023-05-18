@@ -53,9 +53,9 @@ pub fn distance_points_bev(point1: &[f64; 3], point2: &[f64; 3]) -> f64 {
 /// ```
 /// use perception_eval::point::get_point_left_right;
 ///
-/// let (left, right) = get_point_left_right(&[1.0, 1.0, 0.0], &[2.0, 2.0, 0.0]);
+/// let (left, right) = get_point_left_right(&[1.0, 2.0, 0.0], &[2.0, 2.0, 0.0]);
 ///
-/// assert_eq!(left, &[1.0, 1.0, 0.0]);
+/// assert_eq!(left, &[1.0, 2.0, 0.0]);
 /// assert_eq!(right, &[2.0, 2.0, 0.0]);
 /// ```
 pub fn get_point_left_right<'a>(

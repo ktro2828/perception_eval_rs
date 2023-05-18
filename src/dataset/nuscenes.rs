@@ -68,16 +68,6 @@ impl NuScenes {
     ///
     /// * `version` - Version name of nuscenes. e.g. v.1.0-train.
     /// * `dir`     - Root directory path of nuscenes dataset.
-    ///
-    /// # Examples
-    /// ```rust
-    /// use perception_eval::dataset::nuscenes::{NuScenes, NuScenesResult};
-    ///
-    /// fn main() -> NuscenesResult<()> {
-    ///     let nusc = NuScenes::load("v1.0-train", "/path/to/your/dataset")?;
-    ///     OK(())
-    /// }
-    /// ```
     pub fn load<S, P>(version: S, dir: P) -> NuScenesResult<Self>
     where
         S: AsRef<str>,

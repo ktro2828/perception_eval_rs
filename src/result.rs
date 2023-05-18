@@ -193,6 +193,46 @@ impl PerceptionResult {
 ///
 /// * `estimated_objects`       - List of estimated objects.
 /// * `ground_truth_objects`    - List of ground truth objects.
+///
+/// Examples
+/// ```
+/// use chrono::NaiveDateTime;
+/// use perception_eval::{
+///     frame_id::FrameID,
+///     label::Label,
+///     matching::MatchingMode,
+///     object::object3d::DynamicObject,
+///     result::{PerceptionResult, get_perception_results},
+/// };
+///
+/// let estimation = DynamicObject {
+///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+///     frame_id: FrameID::BaseLink,
+///     position: [1.0, 1.0, 0.0],
+///     orientation: [1.0, 0.0, 0.0, 0.0],
+///     size: [2.0, 1.0, 1.0],
+///     velocity: None,
+///     confidence: 1.0,
+///     label: Label::Car,
+///     pointcloud_num: Some(1000),
+///     uuid: Some("111".to_string()),
+/// };
+///
+/// let ground_truth = DynamicObject {
+///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+///     frame_id: FrameID::BaseLink,
+///     position: [1.0, 1.0, 0.0],
+///     orientation: [1.0, 0.0, 0.0, 0.0],
+///     size: [2.0, 1.0, 1.0],
+///     velocity: None,
+///     confidence: 1.0,
+///     label: Label::Car,
+///     pointcloud_num: Some(1000),
+///     uuid: Some("100".to_string()),
+/// };
+///
+/// let results = get_perception_results(&vec![estimation.clone()], &vec![ground_truth.clone()]);
+/// ```
 pub fn get_perception_results(
     estimated_objects: &Vec<DynamicObject>,
     ground_truth_objects: &Vec<DynamicObject>,

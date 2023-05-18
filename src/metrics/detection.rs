@@ -20,15 +20,15 @@ impl DetectionMetricsScore {
         let mut aph = 0.0;
         let mut n = 0.0;
         for (target_label, threshold) in target_labels.iter().zip(matching_thresholds.iter()) {
-            let results = results_map[&target_label.to_string()];
-            let num_gt = num_gt_map[&target_label.to_string()];
-            ap += Ap::new(&results, &num_gt, target_label).calculate_ap(
+            let results = results_map.get(&target_label.to_string()).unwrap();
+            let num_gt = num_gt_map.get(&target_label.to_string()).unwrap();
+            ap += Ap::new(results, &num_gt, target_label).calculate_ap(
                 TPMetricsAP,
                 matching_mode,
                 threshold,
             );
 
-            aph += Ap::new(&results, &num_gt, target_label).calculate_ap(
+            aph += Ap::new(results, &num_gt, target_label).calculate_ap(
                 TPMetricsAPH,
                 matching_mode,
                 threshold,
@@ -54,7 +54,7 @@ pub(super) struct Ap<'a> {
 impl<'a> Ap<'a> {
     pub(super) fn new(
         results: &'a Vec<PerceptionResult>,
-        num_ground_truth: &usize,
+        num_ground_truth: &'a usize,
         target_label: &'a Label,
     ) -> Self {
         Self {
