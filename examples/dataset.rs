@@ -20,7 +20,10 @@ struct Args {
 pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 fn main() -> Result<()> {
-    let log_dir_name = format!("./data/{}", chrono::Local::now().format("%Y%m%d_%H%M%S"));
+    let log_dir_name = format!(
+        "./work_dir/{}",
+        chrono::Local::now().format("%Y%m%d_%H%M%S")
+    );
     let log_dir = Path::new(&log_dir_name);
     configure_logger(log_dir, log::Level::Debug)?;
     let Args { version, data_root } = Args::parse();
