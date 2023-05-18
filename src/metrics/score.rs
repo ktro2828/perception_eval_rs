@@ -4,6 +4,7 @@ use crate::{matching::MatchingMode, result::object::PerceptionResult};
 
 use super::{config::MetricsConfig, detection::DetectionMetricsScore};
 
+#[derive(Debug, Clone)]
 pub(crate) struct MetricsScore<'a> {
     pub(crate) config: &'a MetricsConfig<'a>,
     pub(crate) scores: HashMap<String, HashMap<String, f64>>,

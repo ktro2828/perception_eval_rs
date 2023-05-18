@@ -1,4 +1,6 @@
+use crate::evaluation_task::EvaluationTask;
 use crate::label::{convert_labels, LabelConverter, LabelResult};
+use crate::metrics::config::MetricsConfig;
 use crate::{frame_id::FrameID, label::Label};
 use std::io::Error as IoError;
 use std::path::{Path, PathBuf};
@@ -22,7 +24,9 @@ pub enum ConfigError {
 
 #[derive(Debug, Clone)]
 pub struct PerceptionEvaluationConfig {
+    pub version: String,
     pub dataset_path: PathBuf,
+    pub evaluation_task: EvaluationTask,
     pub frame_id: FrameID,
     pub result_dir: PathBuf,
     pub log_dir: PathBuf,
@@ -34,7 +38,9 @@ pub struct PerceptionEvaluationConfig {
 
 impl PerceptionEvaluationConfig {
     pub fn new<S>(
+        version: &str,
         dataset_path: S,
+        evaluation_task: EvaluationTask,
         frame_id: S,
         result_dir: S,
         filter_params: FilterParams,
@@ -51,7 +57,9 @@ impl PerceptionEvaluationConfig {
         let viz_dir = result_dir.join("visualize");
 
         Self {
+            version: version.to_owned(),
             dataset_path: dataset_path.to_owned(),
+            evaluation_task: evaluation_task,
             frame_id: frame_id,
             result_dir: result_dir.to_owned(),
             log_dir: log_dir,
@@ -136,6 +144,10 @@ impl MetricsParams {
             iou3d_thresholds: iou3d_thresholds,
         };
         Ok(ret)
+    }
+
+    pub(crate) fn get_metrics_config(&self, evaluation_task: &EvaluationTask) -> MetricsConfig {
+        MetricsConfig::new(evaluation_task.to_owned(), self)
     }
 }
 
