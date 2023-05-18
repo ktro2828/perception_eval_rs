@@ -1,7 +1,7 @@
 use crate::{config::MetricsParams, evaluation_task::EvaluationTask, label::Label};
 
 #[derive(Debug, Clone)]
-pub(crate) struct MetricsConfig<'a> {
+pub struct MetricsConfig<'a> {
     pub(crate) evaluation_task: EvaluationTask,
     pub(crate) target_labels: &'a Vec<Label>,
     pub(crate) center_distance_thresholds: &'a Vec<f64>,
@@ -11,7 +11,7 @@ pub(crate) struct MetricsConfig<'a> {
 }
 
 impl<'a> MetricsConfig<'a> {
-    pub(crate) fn new(evaluation_task: EvaluationTask, params: &'a MetricsParams) -> Self {
+    pub fn new(evaluation_task: EvaluationTask, params: &'a MetricsParams) -> Self {
         Self {
             evaluation_task: evaluation_task,
             target_labels: &params.target_labels,

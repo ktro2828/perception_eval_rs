@@ -5,13 +5,13 @@ use crate::{matching::MatchingMode, result::object::PerceptionResult};
 use super::{config::MetricsConfig, detection::DetectionMetricsScore};
 
 #[derive(Debug, Clone)]
-pub(crate) struct MetricsScore<'a> {
+pub struct MetricsScore<'a> {
     pub(crate) config: &'a MetricsConfig<'a>,
     pub(crate) scores: HashMap<String, HashMap<String, f64>>,
 }
 
 impl<'a> MetricsScore<'a> {
-    pub(crate) fn new(config: &'a MetricsConfig) -> Self {
+    pub fn new(config: &'a MetricsConfig) -> Self {
         let scores: HashMap<String, HashMap<String, f64>> = HashMap::new();
         Self {
             config: config,
@@ -19,7 +19,7 @@ impl<'a> MetricsScore<'a> {
         }
     }
 
-    pub(crate) fn evaluate_detection(
+    pub fn evaluate_detection(
         &self,
         results_map: &HashMap<String, Vec<PerceptionResult>>,
         num_gt_map: &HashMap<String, usize>,

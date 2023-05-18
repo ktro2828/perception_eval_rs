@@ -8,7 +8,7 @@ use crate::{
 use super::object::PerceptionResult;
 
 #[derive(Debug, Clone)]
-pub(crate) struct PerceptionFrameResult<'a> {
+pub struct PerceptionFrameResult<'a> {
     pub score: MetricsScore<'a>,
 }
 
