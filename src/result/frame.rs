@@ -1,8 +1,12 @@
 use crate::{
     dataset::FrameGroundTruth,
+    evaluation_task::EvaluationTask,
     filter::{divide_objects_to_num, divide_results},
-    label::Label,
-    metrics::{config::MetricsConfig, score::MetricsScore},
+    metrics::{
+        config::MetricsConfig,
+        error::{MetricsError, MetricsResult},
+        score::MetricsScore,
+    },
 };
 
 use super::object::PerceptionResult;
@@ -13,20 +17,20 @@ pub struct PerceptionFrameResult<'a> {
 }
 
 impl<'a> PerceptionFrameResult<'a> {
-    pub fn new(config: &'a MetricsConfig) -> Self {
-        Self {
-            score: MetricsScore::new(config),
+    pub fn new(
+        config: &'a MetricsConfig,
+        results: Vec<PerceptionResult>,
+        frame_ground_truth: FrameGroundTruth,
+    ) -> MetricsResult<Self> {
+        let mut score = MetricsScore::new(&config);
+        let results_map = divide_results(&results, &config.target_labels);
+        let num_gt_map = divide_objects_to_num(&frame_ground_truth.objects, &config.target_labels);
+        match config.evaluation_task {
+            EvaluationTask::Detection => score.evaluate_detection(&results_map, &num_gt_map),
+            _ => Err(MetricsError::NotImplementedError(
+                config.evaluation_task.clone(),
+            ))?,
         }
-    }
-
-    pub fn evaluate(
-        &self,
-        results: &Vec<PerceptionResult>,
-        frame_ground_truth: &FrameGroundTruth,
-        target_labels: &Vec<Label>,
-    ) {
-        let results_map = divide_results(results, target_labels);
-        let num_gt_map = divide_objects_to_num(&frame_ground_truth.objects, target_labels);
-        self.score.evaluate_detection(&results_map, &num_gt_map);
+        Ok(Self { score })
     }
 }

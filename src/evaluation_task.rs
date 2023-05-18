@@ -26,6 +26,12 @@ impl Display for EvaluationTask {
     }
 }
 
+impl AsRef<EvaluationTask> for EvaluationTask {
+    fn as_ref(&self) -> &EvaluationTask {
+        self
+    }
+}
+
 impl FromStr for EvaluationTask {
     type Err = EvaluationTaskError;
 

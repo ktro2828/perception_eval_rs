@@ -32,7 +32,7 @@ pub struct PerceptionEvaluationConfig {
     pub log_dir: PathBuf,
     pub viz_dir: PathBuf,
     pub filter_params: FilterParams,
-    pub metrics_params: MetricsParams,
+    pub metrics_config: MetricsConfig,
     pub load_raw_data: bool,
 }
 
@@ -55,6 +55,7 @@ impl PerceptionEvaluationConfig {
         let result_dir = Path::new(result_dir.as_ref());
         let log_dir = result_dir.join("log");
         let viz_dir = result_dir.join("visualize");
+        let metrics_config = metrics_params.get_metrics_config(&evaluation_task);
 
         Self {
             version: version.to_owned(),
@@ -65,7 +66,7 @@ impl PerceptionEvaluationConfig {
             log_dir: log_dir,
             viz_dir: viz_dir,
             filter_params: filter_params,
-            metrics_params: metrics_params,
+            metrics_config: metrics_config,
             load_raw_data: load_raw_data,
         }
     }
@@ -147,7 +148,7 @@ impl MetricsParams {
     }
 
     pub(crate) fn get_metrics_config(&self, evaluation_task: &EvaluationTask) -> MetricsConfig {
-        MetricsConfig::new(evaluation_task.to_owned(), self)
+        MetricsConfig::new(evaluation_task.to_owned(), self.clone())
     }
 }
 
