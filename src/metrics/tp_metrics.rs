@@ -36,3 +36,80 @@ impl TPMetrics for TPMetricsAPH {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::TPMetrics;
+    use crate::{
+        frame_id::FrameID,
+        label::Label,
+        metrics::tp_metrics::{TPMetricsAP, TPMetricsAPH},
+        object::object3d::DynamicObject,
+        result::object::PerceptionResult,
+    };
+    use chrono::NaiveDateTime;
+
+    #[test]
+    fn test_tp_metrics_ap() {
+        let estimation = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+
+        let ground_truth = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [10.0, 10.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+        let result = PerceptionResult::new(estimation, Some(ground_truth));
+        let value = TPMetricsAP.get_value(&result);
+        assert_eq!(value, 1.0);
+    }
+
+    #[test]
+    fn test_tp_metrics_aph() {
+        let estimation = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+
+        let ground_truth = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [10.0, 10.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+        let result = PerceptionResult::new(estimation, Some(ground_truth));
+        let value = TPMetricsAPH.get_value(&result);
+        assert_eq!(value, 1.0);
+    }
+}
