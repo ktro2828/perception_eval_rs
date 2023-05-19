@@ -58,9 +58,8 @@ fn main() -> Result<()> {
         }
     }
 
-    for result in manager.frame_results {
-        println!("{}", result.score);
-    }
+    let score = manager.get_scene_score()?;
+    println!("{}", score);
 
     Ok(())
 }
