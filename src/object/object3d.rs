@@ -313,9 +313,9 @@ impl DynamicObject {
     /// assert_eq!(heading, 0.0);
     /// ```
     pub fn heading(&self) -> f64 {
-        let [_, _, mut yaw] = self.euler();
+        let [_, _, yaw] = self.euler();
 
-        yaw = -yaw - 0.5 * PI;
+        // yaw = -yaw - 0.5 * PI;
 
         if PI < yaw {
             yaw - 2.0 * PI
