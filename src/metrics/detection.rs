@@ -54,28 +54,28 @@ impl DetectionMetricsScore {
 impl Display for DetectionMetricsScore {
     fn fmt(&self, f: &mut Formatter<'_>) -> FormatResult {
         let mut msg = "\n".to_string();
+        msg += &format!("[{:?}]\n", self.matching_mode);
 
         self.scores.iter().for_each(|(key, values)| {
             msg += &format!(
-                "m{}: {}\n",
+                "m{}: {} ",
                 key,
                 values.iter().sum::<f64>() / values.len() as f64
             )
         });
-        msg += &format!("{:?}\n", self.matching_mode);
 
-        msg += "|      Label |";
+        msg += "\n|    Label |";
         self.target_labels
             .iter()
             .enumerate()
-            .for_each(|(i, label)| msg += &format!("{}({})", label, self.thresholds[i]));
+            .for_each(|(i, label)| msg += &format!("{}({}) |", label, self.thresholds[i]));
 
         self.scores.iter().for_each(|(key, values)| {
-            msg += &format!("|      {} |", key);
+            msg += &format!("\n|    {} |", key);
             values.iter().for_each(|ap| msg += &format!(" {} | ", ap));
         });
 
-        write!(f, "{}", msg)
+        write!(f, "{}\n", msg)
     }
 }
 
