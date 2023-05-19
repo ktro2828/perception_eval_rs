@@ -13,6 +13,8 @@ use super::object::PerceptionResult;
 
 #[derive(Debug, Clone)]
 pub struct PerceptionFrameResult<'a> {
+    pub results: Vec<PerceptionResult>,
+    pub frame_ground_truth: FrameGroundTruth,
     pub score: MetricsScore<'a>,
 }
 
@@ -31,6 +33,10 @@ impl<'a> PerceptionFrameResult<'a> {
                 config.evaluation_task.clone(),
             ))?,
         }
-        Ok(Self { score })
+        Ok(Self {
+            results,
+            frame_ground_truth,
+            score,
+        })
     }
 }
