@@ -153,7 +153,7 @@ fn is_target_object(
         match target_uuids {
             Some(thresholds) => match &object.uuid {
                 Some(uuid) => is_target && thresholds.contains(&uuid),
-                None => is_target,
+                None => false,
             },
             None => is_target,
         }
