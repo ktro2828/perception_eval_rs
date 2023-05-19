@@ -166,6 +166,7 @@ fn is_target_object(
 ///
 /// * `objects`         - List of objects.
 /// * `target_labels`   - List of target labels.
+#[allow(unused)]
 pub(crate) fn divide_objects(
     objects: &Vec<DynamicObject>,
     target_labels: &Vec<Label>,
@@ -235,6 +236,7 @@ pub(crate) fn divide_results(
 ///
 /// * `results`         - List of results.
 /// * `target_labels`   - List of target labels.
+#[allow(unused)]
 pub(crate) fn divide_results_to_num(
     results: &Vec<PerceptionResult>,
     target_labels: &Vec<Label>,

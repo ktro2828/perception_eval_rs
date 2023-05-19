@@ -1,10 +1,16 @@
 use super::tp_metrics::{TPMetrics, TPMetricsAP, TPMetricsAPH};
 use crate::{label::Label, matching::MatchingMode, result::object::PerceptionResult};
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    fmt::{Display, Formatter, Result as FormatResult},
+};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct DetectionMetricsScore {
-    pub(crate) scores: HashMap<String, f64>,
+    pub(crate) target_labels: Vec<Label>,
+    pub(crate) matching_mode: MatchingMode,
+    pub(crate) thresholds: Vec<f64>,
+    pub(crate) scores: HashMap<String, Vec<f64>>,
 }
 
 impl DetectionMetricsScore {
@@ -16,31 +22,60 @@ impl DetectionMetricsScore {
         matching_thresholds: &Vec<f64>,
     ) -> Self {
         let mut scores = HashMap::new();
-        let mut ap = 0.0;
-        let mut aph = 0.0;
-        let mut n = 0.0;
-        for (target_label, threshold) in target_labels.iter().zip(matching_thresholds.iter()) {
+        let num_targets = target_labels.len();
+        let mut ap_list = vec![0.0; num_targets];
+        let mut aph_list = vec![0.0; num_targets];
+        for ((i, target_label), threshold) in target_labels
+            .iter()
+            .enumerate()
+            .zip(matching_thresholds.iter())
+        {
             let results = results_map.get(&target_label.to_string()).unwrap();
             let num_gt = num_gt_map.get(&target_label.to_string()).unwrap();
-            ap += Ap::new(results, &num_gt, target_label).calculate_ap(
-                TPMetricsAP,
-                matching_mode,
-                threshold,
-            );
-
-            aph += Ap::new(results, &num_gt, target_label).calculate_ap(
-                TPMetricsAPH,
-                matching_mode,
-                threshold,
-            );
-
-            n += 1.0;
+            ap_list[i] =
+                Ap::new(results, &num_gt).calculate_ap(TPMetricsAP, matching_mode, threshold);
+            aph_list[i] =
+                Ap::new(results, &num_gt).calculate_ap(TPMetricsAPH, matching_mode, threshold);
         }
 
-        scores.insert("ap".to_string(), ap / n);
-        scores.insert("aph".to_string(), aph / n);
+        scores.insert("AP".to_string(), ap_list);
+        scores.insert("APH".to_string(), aph_list);
 
-        Self { scores: scores }
+        // TODO: Refactor DO NOT USE to_owned()
+        Self {
+            target_labels: target_labels.to_owned(),
+            matching_mode: matching_mode.to_owned(),
+            thresholds: matching_thresholds.to_owned(),
+            scores: scores,
+        }
+    }
+}
+
+impl Display for DetectionMetricsScore {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FormatResult {
+        let mut msg = "\n".to_string();
+
+        self.scores.iter().for_each(|(key, values)| {
+            msg += &format!(
+                "m{}: {}\n",
+                key,
+                values.iter().sum::<f64>() / values.len() as f64
+            )
+        });
+        msg += &format!("{:?}\n", self.matching_mode);
+
+        msg += "|      Label |";
+        self.target_labels
+            .iter()
+            .enumerate()
+            .for_each(|(i, label)| msg += &format!("{}({})", label, self.thresholds[i]));
+
+        self.scores.iter().for_each(|(key, values)| {
+            msg += &format!("|      {} |", key);
+            values.iter().for_each(|ap| msg += &format!(" {} | ", ap));
+        });
+
+        write!(f, "{}", msg)
     }
 }
 
@@ -48,19 +83,13 @@ impl DetectionMetricsScore {
 pub(super) struct Ap<'a> {
     results: &'a Vec<PerceptionResult>,
     num_ground_truth: &'a usize,
-    target_label: &'a Label,
 }
 
 impl<'a> Ap<'a> {
-    pub(super) fn new(
-        results: &'a Vec<PerceptionResult>,
-        num_ground_truth: &'a usize,
-        target_label: &'a Label,
-    ) -> Self {
+    pub(super) fn new(results: &'a Vec<PerceptionResult>, num_ground_truth: &'a usize) -> Self {
         Self {
             results: results,
             num_ground_truth: num_ground_truth,
-            target_label: target_label,
         }
     }
 
