@@ -247,11 +247,17 @@ pub fn get_perception_results(
     } else if ground_truth_objects.len() == 0 {
         get_fp_perception_results(estimated_objects)
     } else {
-        let mut estimated_object_list = estimated_objects.clone();
-        let mut ground_truth_object_list = ground_truth_objects.clone();
         let mut score_table: Vec<Vec<Option<f64>>> =
             get_score_table(estimated_objects, ground_truth_objects, matching_method);
-        for _ in 0..estimated_objects.len() {
+        let mut took_indices = Vec::new();
+        let num_estimated_objects = estimated_objects.len();
+        for _ in 0..num_estimated_objects {
+            if score_table
+                .iter()
+                .all(|row| row.iter().all(|col| col.is_none()))
+            {
+                break;
+            }
             for (est_idx, row_table) in score_table.iter_mut().enumerate() {
                 let (gt_idx, _) = row_table.iter().enumerate().fold(
                     (usize::MAX, f64::MAX),
@@ -268,18 +274,24 @@ pub fn get_perception_results(
                 );
 
                 results.push(PerceptionResult {
-                    estimated_object: estimated_object_list[est_idx].to_owned(),
-                    ground_truth_object: Some(ground_truth_object_list[gt_idx].to_owned()),
+                    estimated_object: estimated_objects[est_idx].to_owned(),
+                    ground_truth_object: Some(ground_truth_objects[gt_idx].to_owned()),
                 });
 
                 row_table[gt_idx] = None;
-                estimated_object_list.remove(est_idx);
-                ground_truth_object_list.remove(gt_idx);
+                took_indices.push(est_idx);
             }
         }
 
-        if 0 < estimated_object_list.len() {
-            let mut fp_results = get_fp_perception_results(&estimated_object_list);
+        if took_indices.len() < num_estimated_objects {
+            let index_list = (0..num_estimated_objects).collect::<Vec<usize>>();
+            let mut fp_estimated_objects = Vec::new();
+            index_list.iter().for_each(|idx| {
+                if took_indices.contains(idx) {
+                    fp_estimated_objects.push(estimated_objects[*idx].to_owned());
+                }
+            });
+            let mut fp_results = get_fp_perception_results(&fp_estimated_objects);
             results.append(&mut fp_results);
         }
         results
