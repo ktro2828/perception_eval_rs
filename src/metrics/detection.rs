@@ -58,7 +58,7 @@ impl Display for DetectionMetricsScore {
 
         self.scores.iter().for_each(|(key, values)| {
             msg += &format!(
-                "m{}: {} ",
+                "m{}: {:.3} ",
                 key,
                 values.iter().sum::<f64>() / values.len() as f64
             )
@@ -68,11 +68,13 @@ impl Display for DetectionMetricsScore {
         self.target_labels
             .iter()
             .enumerate()
-            .for_each(|(i, label)| msg += &format!("{}({}) |", label, self.thresholds[i]));
+            .for_each(|(i, label)| msg += &format!("{}({:.2}) |", label, self.thresholds[i]));
 
         self.scores.iter().for_each(|(key, values)| {
             msg += &format!("\n|    {} |", key);
-            values.iter().for_each(|ap| msg += &format!(" {} | ", ap));
+            values
+                .iter()
+                .for_each(|ap| msg += &format!(" {:.3} | ", ap));
         });
 
         write!(f, "{}\n", msg)
