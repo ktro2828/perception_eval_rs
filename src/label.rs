@@ -134,9 +134,10 @@ impl<'a> LabelConverter<'a> {
     /// assert_eq!(label, Label::Car);
     /// ```
     pub fn convert(&self, name: &str) -> Label {
-        match self.pairs.contains_key(name) {
-            true => self.pairs[name].clone(),
-            false => {
+        let lower_name = name.to_lowercase();
+        match self.pairs.get(lower_name.as_str()) {
+            Some(value) => value.to_owned(),
+            None => {
                 log::warn!("unexpected label name: {}, set as Label::Unknown", name);
                 Label::Unknown
             }
