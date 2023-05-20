@@ -12,14 +12,14 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 
 | Format   | Description                                          | Support            |
 | :------- | :--------------------------------------------------- | :----------------- |
-| NuScenes | [NuScenes format](https://www.nuscenes.org/nuscenes) | :heavy_check_mark: |
+| NuScenes | [NuScenes format](https://www.nuscenes.org/nuscenes) | :white_check_mark: |
 | NuImages | [NuImages format](https://www.nuscenes.org/nuimages) | :x:                |
 
 ### Evaluation tasks
 
 | Task        | Metrics            | Description          | Support            |
 | :---------- | :----------------- | :------------------- | :----------------- |
-| Detection   | mAP, mAPH          | 3D detection         | :white_check_mark: |
+| Detection   | mAP, mAPH          | 3D detection         | :heavy_check_mark: |
 | Tracking    | CLEAR              | 3D tracking          | :x:                |
 | Prediction  | ADE, FDE, MissRate | 3D motion prediction | :x:                |
 | Detection2D | mAP                | 2D detection         | :x:                |
@@ -28,14 +28,14 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 ### Object type
 
 | Name              | Description | Support            |
-|:------------------|:------------|:-------------------|
+| :---------------- | :---------- | :----------------- |
 | `DynamicObject`   | 3D object   | :white_check_mark: |
 | `DynamicObject2D` | 2D object   | :x:                |
 
 ### Coordinates system
 
 | Name       | Support            |
-|:-----------|:-------------------|
+| :--------- | :----------------- |
 | `BaseLink` | :heavy_check_mark: |
 | `Map`      | :x:                |
 | `Camera`   | :x:                |
@@ -43,14 +43,14 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 ### Evaluation manager & configuration
 
 | Name                          | Description                            | Support            |
-|:------------------------------|:---------------------------------------|:-------------------|
-| `PerceptionEvaluationManager` | Manager to evaluate perception tasks   | :white_check_mark: |
-| `PerceptionEvaluationConfig`  | Configuration of perception evaluation | :white_check_mark: |
+| :---------------------------- | :------------------------------------- | :----------------- |
+| `PerceptionEvaluationManager` | Manager to evaluate perception tasks   | :heavy_check_mark: |
+| `PerceptionEvaluationConfig`  | Configuration of perception evaluation | :heavy_check_mark: |
 
 ### Matching objects
 
 | Name             | Description                                  | Support            |
-|:-----------------|:---------------------------------------------|:-------------------|
+| :--------------- | :------------------------------------------- | :----------------- |
 | `CenterDistance` | Euclidean distance between center of objects | :heavy_check_mark: |
 | `PlaneDistance`  | RMS score of nearest two planes              | :heavy_check_mark: |
 | `Iou2D`          | 2D IoU score                                 | :heavy_check_mark: |
@@ -68,16 +68,16 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 
 ### Object results
 
-| Name                    | Description                                         | Support            |
-|:------------------------|:----------------------------------------------------|:-------------------|
-| `PerceptionResult`      | Matching pair of estimated and ground truth objects | :heavy_check_mark: |
+| Name               | Description                                         | Support            |
+| :----------------- | :-------------------------------------------------- | :----------------- |
+| `PerceptionResult` | Matching pair of estimated and ground truth objects | :heavy_check_mark: |
 
 ### Metrics score
 
 | Name            | Description                      | Support            |
-|:----------------|:---------------------------------|:-------------------|
-| `MetricsScore`  | Calculate score for each metrics | :white_check_mark: |
-| `MetricsConfig` | Configuration of `MetricsScore`  | :white_check_mark: |
+| :-------------- | :------------------------------- | :----------------- |
+| `MetricsScore`  | Calculate score for each metrics | :heavy_check_mark: |
+| `MetricsConfig` | Configuration of `MetricsScore`  | :heavy_check_mark: |
 
 ## Documents
 
