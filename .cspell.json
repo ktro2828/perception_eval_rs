@@ -5,6 +5,7 @@
     "chrono",
     "datetime",
     "fileformat",
+    "indicatif",
     "itertools",
     "logfile",
     "nalgebra",

@@ -8,6 +8,7 @@ use crate::{
     object::object3d::DynamicObject,
 };
 use chrono::naive::NaiveDateTime;
+use indicatif::{ProgressBar, ProgressIterator};
 use std::fmt::{Display, Formatter, Result as FormatResult};
 use std::path::PathBuf;
 
@@ -52,10 +53,11 @@ pub fn load_dataset(
 
     let nusc = NuScenes::load(version, data_root)?;
     let mut datasets: Vec<FrameGroundTruth> = Vec::new();
-    for sample in nusc.sample_iter() {
+    let bar = ProgressBar::new(nusc.sample_map.len() as u64);
+    nusc.sample_iter().progress_with(bar).for_each(|sample| {
         let frame = sample_to_frame(&nusc, &sample, frame_id).unwrap();
         datasets.push(frame);
-    }
+    });
     Ok(datasets)
 }
 
@@ -94,7 +96,7 @@ fn sample_to_frame(
         let label = label_converter.convert(&nusc.category_map[&instance.category_token].name);
         let object = DynamicObject {
             timestamp: sample.timestamp,
-            frame_id: frame_id.clone(),
+            frame_id: frame_id.to_owned(),
             position: sample_annotation.translation,
             orientation: sample_annotation.rotation,
             size: sample_annotation.size,
