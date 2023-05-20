@@ -1,25 +1,33 @@
-use crate::math::rotate;
+use crate::math::{rotate, rotate_inv, rotate_q, rotate_q_inv, translate, translate_inv};
+
+use super::schema::LongToken;
 
 #[derive(Debug)]
-pub(crate) struct NuScenesBox {
-    pub(crate) position: [f64; 3],
-    pub(crate) orientation: [f64; 4],
-    pub(crate) size: [f64; 3],
-    pub(crate) label: String,
+pub struct NuScenesBox {
+    pub position: [f64; 3],
+    pub orientation: [f64; 4],
+    pub size: [f64; 3],
+    pub name: String,
+    pub instance: LongToken,
+    pub token: LongToken,
 }
 
 impl NuScenesBox {
-    pub(crate) fn translate(&mut self, xyz: &[f64; 3]) {
-        for i in 0..3 {
-            self.position[i] += xyz[i];
-        }
+    pub fn translate(&mut self, xyz: &[f64; 3]) {
+        self.position = translate(&self.position, xyz);
     }
 
-    pub(crate) fn rotate(&mut self, orientation: &[f64; 4]) {
-        self.position = rotate(&self.position, &orientation);
+    pub fn translate_inv(&mut self, xyz: &[f64; 3]) {
+        self.position = translate_inv(&self.position, xyz);
+    }
 
-        for i in 0..4 {
-            self.orientation[i] *= orientation[i];
-        }
+    pub fn rotate(&mut self, orientation: &[f64; 4]) {
+        self.position = rotate(&self.position, &orientation);
+        self.orientation = rotate_q(&self.orientation, orientation);
+    }
+
+    pub fn rotate_inv(&mut self, orientation: &[f64; 4]) {
+        self.position = rotate_inv(&self.position, orientation);
+        self.orientation = rotate_q_inv(&self.orientation, orientation);
     }
 }

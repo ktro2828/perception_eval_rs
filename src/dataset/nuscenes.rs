@@ -1,3 +1,4 @@
+pub mod r#box;
 pub mod error;
 pub mod internal;
 pub mod iter;
@@ -8,6 +9,7 @@ use self::{
     error::{NuScenesError, NuScenesResult},
     internal::{InstanceInternal, SampleInternal, SceneInternal},
     iter::Iter,
+    r#box::NuScenesBox,
     schema::{
         Attribute, CalibratedSensor, Category, EgoPose, Instance, Log, LongToken, Map, Sample,
         SampleAnnotation, SampleData, Scene, Sensor, ShortToken, Visibility,
@@ -684,6 +686,116 @@ impl NuScenes {
             tokens_iter,
             _phantom: PhantomData,
         }
+    }
+
+    pub fn get_sample_data_path(&self, sample_data_token: &LongToken) -> PathBuf {
+        let sd_record = self.sample_data_map.get(sample_data_token).unwrap();
+        self.dataset_dir.join(&sd_record.filename)
+    }
+
+    pub fn get_sample_data(
+        &self,
+        sample_data_token: &LongToken,
+        use_sensor_frame: &bool,
+    ) -> NuScenesResult<(PathBuf, Vec<NuScenesBox>, Option<[[f64; 3]; 3]>)> {
+        let sd_record = self.sample_data_map.get(sample_data_token).unwrap();
+        let cs_record = self
+            .calibrated_sensor_map
+            .get(&sd_record.calibrated_sensor_token)
+            .unwrap();
+        // let sensor_record = self.sensor_map.get(&cs_record.sensor_token).unwrap();
+        let pose_record = self.ego_pose_map.get(&sd_record.ego_pose_token).unwrap();
+
+        let cam_intrinsic = cs_record.camera_intrinsic;
+        let data_path = self.get_sample_data_path(sample_data_token);
+
+        let mut boxes = self.get_boxes(sample_data_token)?;
+        boxes.iter_mut().for_each(|nusc_box| {
+            // Move box to ego vehicle coord system
+            nusc_box.translate_inv(&pose_record.translation);
+            nusc_box.rotate_inv(&pose_record.rotation);
+
+            // Move box to sensor coord system
+            if *use_sensor_frame {
+                nusc_box.translate_inv(&cs_record.translation);
+                nusc_box.rotate_inv(&cs_record.rotation);
+            }
+        });
+
+        Ok((data_path, boxes, cam_intrinsic))
+    }
+
+    pub fn get_boxes(&self, sample_data_token: &LongToken) -> NuScenesResult<Vec<NuScenesBox>> {
+        let sd_record = self.sample_data_map.get(sample_data_token).unwrap();
+        let cur_sample_record = self.sample_map.get(&sd_record.sample_token).unwrap();
+        if cur_sample_record.prev.is_none() || sd_record.is_key_frame {
+            let boxes = cur_sample_record
+                .annotation_tokens
+                .iter()
+                .map(|token| self.get_box(token))
+                .collect::<Vec<NuScenesBox>>();
+            return Ok(boxes);
+        } else {
+            // let prev_sample_record = self
+            //     .sample_map
+            //     .get(&cur_sample_record.prev.as_ref().unwrap())
+            //     .unwrap();
+            let cur_ann_records = cur_sample_record
+                .annotation_tokens
+                .iter()
+                .map(|token| self.sample_annotation_map.get(&token).unwrap())
+                .collect_vec();
+            // let prev_ann_records = prev_sample_record
+            //     .annotation_tokens
+            //     .iter()
+            //     .map(|token| self.sample_annotation_map.get(&token).unwrap())
+            //     .collect_vec();
+
+            // let prev_instance_map: HashMap<LongToken, SampleAnnotation> = prev_ann_records
+            //     .iter()
+            //     .map(|record| {
+            //         let mut entry = HashMap::new();
+            //         entry.insert(record.instance_token, record);
+            //     })
+            //     .collect();
+
+            // let t0 = prev_sample_record.timestamp;
+            // let t1 = cur_sample_record.timestamp;
+            // let t = sd_record.timestamp.min(t1).max(t0);
+
+            let boxes = cur_ann_records
+                .iter()
+                .map(|ann_record| {
+                    // if prev_instance_map.contains_key(&ann_record.instance_token) {
+                    //     let prev_ann_record = prev_instance_map[&ann_record.instance_token];
+                    //     let center =
+                    // }
+                    self.get_box(&ann_record.token)
+                })
+                .collect();
+            Ok(boxes)
+        }
+    }
+
+    pub fn get_box(&self, sample_annotation_token: &LongToken) -> NuScenesBox {
+        let record = self
+            .sample_annotation_map
+            .get(&sample_annotation_token)
+            .unwrap();
+        let category_token = &self
+            .instance_map
+            .get(&record.instance_token)
+            .unwrap()
+            .category_token;
+        let category_name = &self.category_map.get(&category_token).unwrap().name;
+        return NuScenesBox {
+            position: record.translation,
+            orientation: record.rotation,
+            size: record.size,
+            name: category_name.to_string(),
+            instance: record.instance_token.to_owned(),
+            token: record.token.to_owned(),
+        };
     }
 }
 
