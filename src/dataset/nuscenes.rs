@@ -32,6 +32,19 @@ use std::{
 
 pub type PointCloudMatrix = Matrix<f32, Dyn, U5, VecStorage<f32, Dyn, U5>>;
 
+/// Struct to load NuScenes dataset.
+///
+/// # Examples
+/// ```
+/// use perception_eval::dataset::nuscenes::{NuScenes, error::NuScenesResult};
+///
+/// fn main() -> NuScenesResult<()> {
+///     let nusc = NuScenes::load("annotation", "./tests/sample_data")?;
+///     assert_eq!(nusc.version(), "annotation");
+///     assert_eq!(nusc.dir().to_str().unwrap(), "./tests/sample_data");
+///     Ok(())
+/// }
+/// ```
 #[derive(Debug, Clone)]
 pub struct NuScenes {
     pub(crate) version: String,
@@ -70,6 +83,16 @@ impl NuScenes {
     ///
     /// * `version` - Version name of nuscenes. e.g. v.1.0-train.
     /// * `dir`     - Root directory path of nuscenes dataset.
+    ///
+    /// # Examples
+    /// ```
+    /// use perception_eval::dataset::nuscenes::{NuScenes, error::NuScenesResult};
+    ///
+    /// fn main() -> NuScenesResult<()> {
+    ///     let _nusc = NuScenes::load("annotation", "./tests/sample_data")?;
+    ///     Ok(())
+    /// }
+    /// ```
     pub fn load<S, P>(version: S, dir: P) -> NuScenesResult<Self>
     where
         S: AsRef<str>,
