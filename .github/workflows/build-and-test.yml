@@ -1,6 +1,11 @@
 name: build-and-test
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, edited]
+  workflow_dispatch:
 
 jobs:
   build-and-test:
