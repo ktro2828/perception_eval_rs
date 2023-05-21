@@ -1,4 +1,4 @@
-use crate::point::{distance_points_bev, get_point_left_right};
+use crate::utils::point::{distance_points_bev, get_point_left_right};
 
 use super::object::object3d::DynamicObject;
 use geo::{polygon, Area, BooleanOps, Coord, Polygon};

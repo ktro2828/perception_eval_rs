@@ -1,4 +1,4 @@
-use crate::math::{rotate, rotate_inv, rotate_q, rotate_q_inv, translate, translate_inv};
+use crate::utils::math::{rotate, rotate_inv, rotate_q, rotate_q_inv, translate, translate_inv};
 
 use super::schema::LongToken;
 

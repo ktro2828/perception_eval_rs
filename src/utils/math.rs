@@ -10,8 +10,7 @@ pub(crate) type PositionMatrix = SMatrix<f64, 1, 3>;
 ///
 /// # Examples
 /// ```
-/// use perception_eval::math::RotationMatrix;
-/// use perception_eval::math::quaternion2rotation;
+/// use perception_eval::utils::math::{RotationMatrix, quaternion2rotation};
 ///
 /// let q = [1.0, 0.0, 0.0, 0.0];
 /// let rot = quaternion2rotation(&q);
@@ -44,7 +43,7 @@ pub fn quaternion2rotation(q: &[f64; 4]) -> RotationMatrix<f64> {
 ///
 /// # Examples
 /// ```
-/// use perception_eval::math::quaternion2euler;
+/// use perception_eval::utils::math::quaternion2euler;
 ///
 /// let q = [1.0, 0.0, 0.0, 0.0];
 /// let euler = quaternion2euler(&q);
@@ -69,7 +68,7 @@ pub fn quaternion2euler(q: &[f64; 4]) -> [f64; 3] {
 ///
 /// # Examples
 /// ```
-/// use perception_eval::math::inverse_quaternion;
+/// use perception_eval::utils::math::inverse_quaternion;
 ///
 /// let q = [1.0, 0.0, 0.0, 0.0];
 /// let q_inv = inverse_quaternion(&q);
@@ -93,7 +92,7 @@ pub fn inverse_quaternion(q: &[f64; 4]) -> [f64; 4] {
 ///
 /// # Examples
 /// ```
-/// use perception_eval::math::translate;
+/// use perception_eval::utils::math::translate;
 ///
 /// let xyz1 = [1.0, 1.0, 1.0];
 /// let xyz2 = [2.0, 2.0, 2.0];
@@ -116,7 +115,7 @@ pub fn translate(xyz1: &[f64; 3], xyz2: &[f64; 3]) -> [f64; 3] {
 ///
 /// # Examples
 /// ```
-/// use perception_eval::math::translate_inv;
+/// use perception_eval::utils::math::translate_inv;
 ///
 /// let xyz1 = [1.0, 1.0, 1.0];
 /// let xyz2 = [2.0, 2.0, 2.0];
@@ -139,7 +138,7 @@ pub fn translate_inv(xyz1: &[f64; 3], xyz2: &[f64; 3]) -> [f64; 3] {
 ///
 /// # Examples
 /// ```
-/// use perception_eval::math::rotate;
+/// use perception_eval::utils::math::rotate;
 ///
 /// let xyz = [1.0, 1.0, 1.0];
 /// let q = [1.0, 0.0, 0.0, 0.0];
@@ -162,7 +161,7 @@ pub fn rotate(xyz: &[f64; 3], q: &[f64; 4]) -> [f64; 3] {
 ///
 /// # Examples
 /// ```
-/// use perception_eval::math::rotate_inv;
+/// use perception_eval::utils::math::rotate_inv;
 ///
 /// let xyz = [1.0, 1.0, 1.0];
 /// let q = [1.0, 0.0, 0.0, 0.0];
@@ -183,7 +182,7 @@ pub fn rotate_inv(xyz: &[f64; 3], q: &[f64; 4]) -> [f64; 3] {
 ///
 /// # Examples
 /// ```
-/// use perception_eval::math::rotate_q;
+/// use perception_eval::utils::math::rotate_q;
 ///
 /// let q1 = [1.0, 0.0, 0.0, 0.0];
 /// let q2 = [1.0, 0.0, 0.0, 0.0];
@@ -207,7 +206,7 @@ pub fn rotate_q(q1: &[f64; 4], q2: &[f64; 4]) -> [f64; 4] {
 ///
 /// # Examples
 /// ```
-/// use perception_eval::math::rotate_q_inv;
+/// use perception_eval::utils::math::rotate_q_inv;
 ///
 /// let q1 = [1.0, 0.0, 0.0, 0.0];
 /// let q2 = [1.0, 0.0, 0.0, 0.0];
