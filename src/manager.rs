@@ -4,7 +4,7 @@ use chrono::NaiveDateTime;
 
 use crate::{
     config::PerceptionEvaluationConfig,
-    dataset::{get_current_frame, load_dataset, nuscenes::error::NuScenesResult, FrameGroundTruth},
+    dataset::{get_current_frame, load_dataset, DatasetResult, FrameGroundTruth},
     evaluation_task::EvaluationTask,
     filter::{divide_objects_to_num, divide_results, filter_objects},
     metrics::{
@@ -25,7 +25,7 @@ pub struct PerceptionEvaluationManager<'a> {
 }
 
 impl<'a> PerceptionEvaluationManager<'a> {
-    pub fn new(config: &'a PerceptionEvaluationConfig) -> NuScenesResult<Self> {
+    pub fn new(config: &'a PerceptionEvaluationConfig) -> DatasetResult<Self> {
         let frame_ground_truths = load_dataset(
             config.version.to_owned(),
             config.dataset_path.to_owned(),

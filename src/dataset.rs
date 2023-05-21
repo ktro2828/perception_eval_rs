@@ -1,16 +1,19 @@
 pub mod nuscenes;
 
-use self::nuscenes::{error::NuScenesResult, internal::SampleInternal, NuScenes, WithDataset};
+use self::nuscenes::{internal::SampleInternal, schema::FileFormat, NuScenes, WithDataset};
 use crate::{
-    evaluation_task::EvaluationTask,
-    frame_id::FrameID,
-    label::{LabelConverter, LabelResult},
+    evaluation_task::EvaluationTask, frame_id::FrameID, label::LabelConverter,
     object::object3d::DynamicObject,
 };
 use chrono::naive::NaiveDateTime;
 use indicatif::{ProgressBar, ProgressIterator};
-use std::fmt::{Display, Formatter, Result as FormatResult};
 use std::path::PathBuf;
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result as FormatResult},
+};
+
+pub type DatasetResult<T> = Result<T, Box<dyn Error>>;
 
 /// A struct to contain ground truth objects at one frame.
 ///
@@ -44,7 +47,7 @@ pub fn load_dataset(
     data_root: PathBuf,
     evaluation_task: &EvaluationTask,
     frame_id: &FrameID,
-) -> NuScenesResult<Vec<FrameGroundTruth>> {
+) -> DatasetResult<Vec<FrameGroundTruth>> {
     log::info!(
         "config: evaluation_task: {}, frame_id: {}",
         evaluation_task,
@@ -52,12 +55,12 @@ pub fn load_dataset(
     );
 
     let nusc = NuScenes::load(version, data_root)?;
-    let mut datasets: Vec<FrameGroundTruth> = Vec::new();
     let bar = ProgressBar::new(nusc.sample_map.len() as u64);
-    nusc.sample_iter().progress_with(bar).for_each(|sample| {
-        let frame = sample_to_frame(&nusc, &sample, frame_id).unwrap();
-        datasets.push(frame);
-    });
+    let datasets = nusc
+        .sample_iter()
+        .progress_with(bar)
+        .map(|sample| sample_to_frame(&nusc, &sample, frame_id))
+        .collect::<DatasetResult<Vec<FrameGroundTruth>>>()?;
     Ok(datasets)
 }
 
@@ -85,12 +88,34 @@ fn sample_to_frame(
     nusc: &NuScenes,
     sample: &WithDataset<SampleInternal>,
     frame_id: &FrameID,
-) -> LabelResult<FrameGroundTruth> {
+) -> DatasetResult<FrameGroundTruth> {
     let mut objects: Vec<DynamicObject> = Vec::new();
 
     // TODO
     // === update objects container ===
     let label_converter = LabelConverter::new("autoware")?;
+    // for sample_data in sample.sample_data_iter() {
+    //     if sample_data.fileformat != FileFormat::Bin {
+    //         continue;
+    //     }
+
+    //     let (_, boxes, _) = nusc.get_sample_data(&sample_data.token, &false)?;
+    //     boxes.iter().for_each(|nusc_box| {
+    //         let label = label_converter.convert(&nusc_box.name);
+    //         objects.push(DynamicObject {
+    //             timestamp: sample.timestamp.to_owned(),
+    //             position: nusc_box.position,
+    //             orientation: nusc_box.orientation,
+    //             size: nusc_box.size,
+    //             confidence: 1.0,
+    //             label: label,
+    //             velocity: None,
+    //             frame_id: frame_id.to_owned(),
+    //             pointcloud_num: Some(nusc_box.num_lidar_pts),
+    //             uuid: Some(nusc_box.instance.to_string()),
+    //         });
+    //     });
+    // }
     for sample_annotation in sample.sample_annotation_iter() {
         let instance = &nusc.instance_map[&sample_annotation.instance_token];
         let label = label_converter.convert(&nusc.category_map[&instance.category_token].name);

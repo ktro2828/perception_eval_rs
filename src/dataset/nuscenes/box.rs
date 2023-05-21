@@ -9,6 +9,7 @@ pub struct NuScenesBox {
     pub size: [f64; 3],
     pub name: String,
     pub instance: LongToken,
+    pub num_lidar_pts: isize,
     pub token: LongToken,
 }
 

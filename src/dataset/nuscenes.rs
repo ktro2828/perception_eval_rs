@@ -688,9 +688,18 @@ impl NuScenes {
         }
     }
 
-    pub fn get_sample_data_path(&self, sample_data_token: &LongToken) -> PathBuf {
-        let sd_record = self.sample_data_map.get(sample_data_token).unwrap();
-        self.dataset_dir.join(&sd_record.filename)
+    pub fn get_sample_data_path(&self, sample_data_token: &LongToken) -> NuScenesResult<PathBuf> {
+        let sd_record = match self.sample_data_map.get(sample_data_token) {
+            Some(record) => record,
+            None => {
+                let msg = format!(
+                    "There is no corresponding sample_data for token: {}",
+                    sample_data_token
+                );
+                Err(NuScenesError::CorruptedDataset(msg))?
+            }
+        };
+        Ok(self.dataset_dir.join(&sd_record.filename))
     }
 
     pub fn get_sample_data(
@@ -698,16 +707,43 @@ impl NuScenes {
         sample_data_token: &LongToken,
         use_sensor_frame: &bool,
     ) -> NuScenesResult<(PathBuf, Vec<NuScenesBox>, Option<[[f64; 3]; 3]>)> {
-        let sd_record = self.sample_data_map.get(sample_data_token).unwrap();
-        let cs_record = self
+        let sd_record = match self.sample_data_map.get(sample_data_token) {
+            Some(record) => record,
+            None => {
+                let msg = format!(
+                    "There is no corresponding sample_data for token: {}",
+                    sample_data_token
+                );
+                Err(NuScenesError::CorruptedDataset(msg))?
+            }
+        };
+        let cs_record = match self
             .calibrated_sensor_map
             .get(&sd_record.calibrated_sensor_token)
-            .unwrap();
+        {
+            Some(record) => record,
+            None => {
+                let msg = format!(
+                    "There is no corresponding calibrated sensor for token: {}",
+                    sample_data_token
+                );
+                Err(NuScenesError::CorruptedDataset(msg))?
+            }
+        };
         // let sensor_record = self.sensor_map.get(&cs_record.sensor_token).unwrap();
-        let pose_record = self.ego_pose_map.get(&sd_record.ego_pose_token).unwrap();
+        let pose_record = match self.ego_pose_map.get(&sd_record.ego_pose_token) {
+            Some(record) => record,
+            None => {
+                let msg = format!(
+                    "There is no corresponding ego pose for token: {}",
+                    sample_data_token
+                );
+                Err(NuScenesError::CorruptedDataset(msg))?
+            }
+        };
 
         let cam_intrinsic = cs_record.camera_intrinsic;
-        let data_path = self.get_sample_data_path(sample_data_token);
+        let data_path = self.get_sample_data_path(sample_data_token)?;
 
         let mut boxes = self.get_boxes(sample_data_token)?;
         boxes.iter_mut().for_each(|nusc_box| {
@@ -726,14 +762,32 @@ impl NuScenes {
     }
 
     pub fn get_boxes(&self, sample_data_token: &LongToken) -> NuScenesResult<Vec<NuScenesBox>> {
-        let sd_record = self.sample_data_map.get(sample_data_token).unwrap();
-        let cur_sample_record = self.sample_map.get(&sd_record.sample_token).unwrap();
+        let sd_record = match self.sample_data_map.get(sample_data_token) {
+            Some(record) => record,
+            None => {
+                let msg = format!(
+                    "There is not corresponding sample_data for token: {}",
+                    sample_data_token
+                );
+                Err(NuScenesError::CorruptedDataset(msg))?
+            }
+        };
+        let cur_sample_record = match self.sample_map.get(&sd_record.sample_token) {
+            Some(record) => record,
+            None => {
+                let msg = format!(
+                    "There is no corresponding sample for token: {}",
+                    &sd_record.sample_token
+                );
+                Err(NuScenesError::CorruptedDataset(msg))?
+            }
+        };
         if cur_sample_record.prev.is_none() || sd_record.is_key_frame {
             let boxes = cur_sample_record
                 .annotation_tokens
                 .iter()
                 .map(|token| self.get_box(token))
-                .collect::<Vec<NuScenesBox>>();
+                .collect::<NuScenesResult<Vec<NuScenesBox>>>()?;
             return Ok(boxes);
         } else {
             // let prev_sample_record = self
@@ -772,30 +826,51 @@ impl NuScenes {
                     // }
                     self.get_box(&ann_record.token)
                 })
-                .collect();
+                .collect::<NuScenesResult<Vec<NuScenesBox>>>()?;
             Ok(boxes)
         }
     }
 
-    pub fn get_box(&self, sample_annotation_token: &LongToken) -> NuScenesBox {
-        let record = self
-            .sample_annotation_map
-            .get(&sample_annotation_token)
-            .unwrap();
-        let category_token = &self
-            .instance_map
-            .get(&record.instance_token)
-            .unwrap()
-            .category_token;
-        let category_name = &self.category_map.get(&category_token).unwrap().name;
-        return NuScenesBox {
+    pub fn get_box(&self, sample_annotation_token: &LongToken) -> NuScenesResult<NuScenesBox> {
+        let record = match self.sample_annotation_map.get(&sample_annotation_token) {
+            Some(record) => record,
+            None => {
+                let msg = format!(
+                    "There is no corresponding sample_annotation for token: {}",
+                    sample_annotation_token
+                );
+                Err(NuScenesError::CorruptedDataset(msg))?
+            }
+        };
+        let category_token = match self.instance_map.get(&record.instance_token) {
+            Some(record) => &record.category_token,
+            None => {
+                let msg = format!(
+                    "There is no corresponding instance for token: {}",
+                    record.instance_token
+                );
+                Err(NuScenesError::CorruptedDataset(msg))?
+            }
+        };
+        let category_name = match self.category_map.get(&category_token) {
+            Some(record) => &record.name,
+            None => {
+                let msg = format!(
+                    "There is no corresponding category for token: {}",
+                    category_token
+                );
+                Err(NuScenesError::CorruptedDataset(msg))?
+            }
+        };
+        Ok(NuScenesBox {
             position: record.translation,
             orientation: record.rotation,
             size: record.size,
             name: category_name.to_string(),
             instance: record.instance_token.to_owned(),
+            num_lidar_pts: record.num_lidar_pts,
             token: record.token.to_owned(),
-        };
+        })
     }
 }
 
