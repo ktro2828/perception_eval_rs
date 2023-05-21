@@ -29,7 +29,7 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 
 | Name              | Description | Support            |
 | :---------------- | :---------- | :----------------- |
-| `DynamicObject`   | 3D object   | :white_check_mark: |
+| `DynamicObject`   | 3D object   | :heavy_check_mark: |
 | `DynamicObject2D` | 2D object   | :x:                |
 
 ### Coordinates system
