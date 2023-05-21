@@ -5,7 +5,7 @@ use perception_eval::{
     dataset::{self, get_current_frame},
     evaluation_task::EvaluationTask,
     frame_id::FrameID,
-    logger::configure_logger,
+    utils::logger::configure_logger,
 };
 use std::error::Error;
 

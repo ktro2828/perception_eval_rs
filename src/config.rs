@@ -1,7 +1,7 @@
 use crate::evaluation_task::EvaluationTask;
 use crate::label::{convert_labels, LabelConverter, LabelResult};
-use crate::logger::configure_logger;
 use crate::metrics::config::MetricsConfig;
+use crate::utils::logger::configure_logger;
 use crate::{frame_id::FrameID, label::Label};
 use std::io::Error as IoError;
 use std::path::{Path, PathBuf};

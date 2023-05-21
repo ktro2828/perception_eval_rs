@@ -5,7 +5,7 @@
 ///
 /// # Examples
 /// ```
-/// use perception_eval::point::distance_points;
+/// use perception_eval::utils::point::distance_points;
 ///
 /// let dist = distance_points(&[1.0, 1.0, 1.0], &[2.0, 2.0, 2.0]);
 ///
@@ -27,7 +27,7 @@ pub fn distance_points(point1: &[f64; 3], point2: &[f64; 3]) -> f64 {
 ///
 /// # Examples
 /// ```
-/// use perception_eval::point::distance_points_bev;
+/// use perception_eval::utils::point::distance_points_bev;
 ///
 /// let dist = distance_points_bev(&[1.0, 1.0, 1.0], &[2.0, 2.0, 2.0]);
 ///
@@ -51,7 +51,7 @@ pub fn distance_points_bev(point1: &[f64; 3], point2: &[f64; 3]) -> f64 {
 ///
 /// # Examples
 /// ```
-/// use perception_eval::point::get_point_left_right;
+/// use perception_eval::utils::point::get_point_left_right;
 ///
 /// let (left, right) = get_point_left_right(&[1.0, 2.0, 0.0], &[2.0, 2.0, 0.0]);
 ///

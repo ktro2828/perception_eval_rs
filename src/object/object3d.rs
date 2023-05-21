@@ -4,8 +4,10 @@ use nalgebra::SMatrix;
 use crate::{
     frame_id::FrameID,
     label::Label,
-    math::{quaternion2euler, quaternion2rotation, PositionMatrix, RotationMatrix},
-    point::{distance_points, distance_points_bev},
+    utils::{
+        math::{quaternion2euler, quaternion2rotation, PositionMatrix, RotationMatrix},
+        point::{distance_points, distance_points_bev},
+    },
 };
 use std::{
     f64::consts::PI,
@@ -331,7 +333,7 @@ impl DynamicObject {
     /// # Examples
     /// ```
     /// use chrono::NaiveDateTime;
-    /// use perception_eval::{frame_id::FrameID, label::Label, math::RotationMatrix, object::object3d::DynamicObject};
+    /// use perception_eval::{frame_id::FrameID, label::Label, utils::math::RotationMatrix, object::object3d::DynamicObject};
     ///
     /// let object = DynamicObject {
     ///     timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
