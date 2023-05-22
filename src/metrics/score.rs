@@ -3,17 +3,21 @@ use std::{
     fmt::{Display, Formatter, Result as FormatResult},
 };
 
-use crate::{matching::MatchingMode, result::object::PerceptionResult};
+use crate::{
+    config::MetricsParams, evaluation_task::EvaluationTask, matching::MatchingMode,
+    result::object::PerceptionResult,
+};
 
-use super::{config::MetricsConfig, detection::DetectionMetricsScore};
+use super::detection::DetectionMetricsScore;
 
 #[derive(Debug, Clone)]
-pub struct MetricsScore<'a> {
-    pub(crate) config: &'a MetricsConfig,
+pub struct MetricsScore {
+    pub(crate) evaluation_task: EvaluationTask,
+    pub(crate) params: MetricsParams,
     pub(crate) scores: Vec<DetectionMetricsScore>,
 }
 
-impl<'a> Display for MetricsScore<'a> {
+impl Display for MetricsScore {
     fn fmt(&self, f: &mut Formatter<'_>) -> FormatResult {
         let mut msg = "\n".to_string();
         self.scores
@@ -23,11 +27,12 @@ impl<'a> Display for MetricsScore<'a> {
     }
 }
 
-impl<'a> MetricsScore<'a> {
-    pub fn new(config: &'a MetricsConfig) -> Self {
+impl MetricsScore {
+    pub fn new(evaluation_task: &EvaluationTask, params: &MetricsParams) -> Self {
         let scores: Vec<DetectionMetricsScore> = Vec::new();
         Self {
-            config: config,
+            evaluation_task: evaluation_task.to_owned(),
+            params: params.to_owned(),
             scores: scores,
         }
     }
@@ -40,9 +45,9 @@ impl<'a> MetricsScore<'a> {
         let center_distance_scores_map = DetectionMetricsScore::new(
             results_map,
             num_gt_map,
-            &self.config.target_labels,
+            &self.params.target_labels,
             &MatchingMode::CenterDistance,
-            &self.config.center_distance_thresholds,
+            &self.params.center_distance_thresholds,
         );
 
         self.scores.push(center_distance_scores_map);
@@ -50,9 +55,9 @@ impl<'a> MetricsScore<'a> {
         let plane_distance_scores_map = DetectionMetricsScore::new(
             results_map,
             num_gt_map,
-            &self.config.target_labels,
+            &self.params.target_labels,
             &MatchingMode::PlaneDistance,
-            &self.config.plane_distance_thresholds,
+            &self.params.plane_distance_thresholds,
         );
 
         self.scores.push(plane_distance_scores_map);
@@ -60,9 +65,9 @@ impl<'a> MetricsScore<'a> {
         let iou2d_scores_map = DetectionMetricsScore::new(
             results_map,
             num_gt_map,
-            &self.config.target_labels,
+            &self.params.target_labels,
             &MatchingMode::Iou2d,
-            &self.config.iou2d_thresholds,
+            &self.params.iou2d_thresholds,
         );
 
         self.scores.push(iou2d_scores_map);
@@ -70,9 +75,9 @@ impl<'a> MetricsScore<'a> {
         let iou3d_scores_map = DetectionMetricsScore::new(
             results_map,
             num_gt_map,
-            &self.config.target_labels,
+            &self.params.target_labels,
             &MatchingMode::Iou3d,
-            &self.config.iou3d_thresholds,
+            &self.params.iou3d_thresholds,
         );
 
         self.scores.push(iou3d_scores_map);

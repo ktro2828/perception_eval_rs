@@ -68,16 +68,16 @@ A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier
 
 ### Object results
 
-| Name               | Description                                         | Support            |
-| :----------------- | :-------------------------------------------------- | :----------------- |
-| `PerceptionResult` | Matching pair of estimated and ground truth objects | :heavy_check_mark: |
+| Name                    | Description                                         | Support            |
+| :---------------------- | :-------------------------------------------------- | :----------------- |
+| `PerceptionResult`      | Matching pair of estimated and ground truth objects | :heavy_check_mark: |
+| `PerceptionFrameResult` | Set of `PerceptionResult`                           | :heavy_check_mark: |
 
 ### Metrics score
 
-| Name            | Description                      | Support            |
-| :-------------- | :------------------------------- | :----------------- |
-| `MetricsScore`  | Calculate score for each metrics | :heavy_check_mark: |
-| `MetricsConfig` | Configuration of `MetricsScore`  | :heavy_check_mark: |
+| Name           | Description                      | Support            |
+| :------------- | :------------------------------- | :----------------- |
+| `MetricsScore` | Calculate score for each metrics | :heavy_check_mark: |
 
 ## Documents
 

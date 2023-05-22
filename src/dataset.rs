@@ -1,6 +1,6 @@
 pub mod nuscenes;
 
-use self::nuscenes::{internal::SampleInternal, schema::FileFormat, NuScenes, WithDataset};
+use self::nuscenes::{internal::SampleInternal, NuScenes, WithDataset};
 use crate::{
     evaluation_task::EvaluationTask, frame_id::FrameID, label::LabelConverter,
     object::object3d::DynamicObject,

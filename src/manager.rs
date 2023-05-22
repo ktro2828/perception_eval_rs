@@ -7,6 +7,7 @@ use crate::{
     dataset::{get_current_frame, load_dataset, DatasetResult, FrameGroundTruth},
     evaluation_task::EvaluationTask,
     filter::{divide_objects_to_num, divide_results, filter_objects},
+    matching::MatchingMode,
     metrics::{
         error::{MetricsError, MetricsResult},
         score::MetricsScore,
@@ -21,7 +22,7 @@ use crate::{
 pub struct PerceptionEvaluationManager<'a> {
     pub config: &'a PerceptionEvaluationConfig,
     pub frame_ground_truths: Vec<FrameGroundTruth>,
-    pub frame_results: Vec<PerceptionFrameResult<'a>>,
+    pub frame_results: Vec<PerceptionFrameResult>,
 }
 
 impl<'a> PerceptionEvaluationManager<'a> {
@@ -50,14 +51,16 @@ impl<'a> PerceptionEvaluationManager<'a> {
         let frame_gt = self.filter_objects(frame_ground_truth.objects.as_mut(), true);
         frame_ground_truth.objects = frame_gt;
 
-        let object_results =
-            get_perception_results(&estimated_objects, &frame_ground_truth.objects);
+        let results = get_perception_results(&estimated_objects, &frame_ground_truth.objects);
 
         let frame_result = PerceptionFrameResult::new(
-            &self.config.metrics_config,
-            object_results,
-            frame_ground_truth.clone(),
-        )?;
+            results,
+            frame_ground_truth.to_owned(),
+            &self.config.filter_params.target_labels,
+            MatchingMode::PlaneDistance,
+            &self.config.metrics_params.plane_distance_thresholds,
+        )
+        .unwrap(); // TODO
         self.frame_results.push(frame_result);
         Ok(())
     }
@@ -67,10 +70,11 @@ impl<'a> PerceptionEvaluationManager<'a> {
     }
 
     pub fn get_scene_score(&self) -> MetricsResult<MetricsScore> {
-        let mut score = MetricsScore::new(&self.config.metrics_config);
+        let target_labels = &self.config.metrics_params.target_labels;
+        let mut score =
+            MetricsScore::new(&self.config.evaluation_task, &self.config.metrics_params);
         let mut scene_results: HashMap<String, Vec<PerceptionResult>> = HashMap::new();
         let mut num_scene_gt = HashMap::new();
-        let target_labels = &self.config.metrics_config.target_labels;
 
         target_labels.iter().for_each(|label| {
             let label_name = label.to_string();
@@ -79,9 +83,9 @@ impl<'a> PerceptionEvaluationManager<'a> {
         });
 
         self.frame_results.iter().for_each(|frame| {
-            let mut result_map = divide_results(&frame.results, &target_labels);
+            let mut result_map = divide_results(frame.results(), &target_labels);
             let num_gt_map =
-                divide_objects_to_num(&frame.frame_ground_truth.objects, &target_labels);
+                divide_objects_to_num(&frame.frame_ground_truth().objects, &target_labels);
             for label in target_labels {
                 let label_name = label.to_string();
                 match scene_results.get_mut(&label_name) {
@@ -110,7 +114,7 @@ impl<'a> PerceptionEvaluationManager<'a> {
         Ok(score)
     }
 
-    fn filter_objects(&self, objects: &Vec<DynamicObject>, is_gt: bool) -> Vec<DynamicObject> {
+    fn filter_objects(&self, objects: &mut Vec<DynamicObject>, is_gt: bool) -> Vec<DynamicObject> {
         filter_objects(objects, is_gt, &self.config.filter_params)
     }
 }
