@@ -43,8 +43,8 @@ impl Display for FrameGroundTruth {
 /// * `evaluation_task` - Task to evaluate.
 /// * `frame_id`        - Frame id where objects are with respect to.
 pub fn load_dataset(
-    version: String,
-    data_root: PathBuf,
+    version: &str,
+    data_root: &PathBuf,
     evaluation_task: &EvaluationTask,
     frame_id: &FrameID,
 ) -> DatasetResult<Vec<FrameGroundTruth>> {

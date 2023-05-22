@@ -29,8 +29,8 @@ fn main() -> Result<()> {
     let Args { version, data_root } = Args::parse();
 
     let frame_ground_truths = dataset::load_dataset(
-        version,
-        data_root,
+        &version,
+        &data_root,
         &EvaluationTask::Detection,
         &FrameID::BaseLink,
     )?;

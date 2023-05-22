@@ -28,8 +28,8 @@ pub struct PerceptionEvaluationManager<'a> {
 impl<'a> PerceptionEvaluationManager<'a> {
     pub fn new(config: &'a PerceptionEvaluationConfig) -> DatasetResult<Self> {
         let frame_ground_truths = load_dataset(
-            config.version.to_owned(),
-            config.dataset_path.to_owned(),
+            &config.version,
+            &config.dataset_path,
             &config.evaluation_task,
             &config.frame_id,
         )?;
