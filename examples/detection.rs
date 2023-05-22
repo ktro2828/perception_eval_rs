@@ -53,7 +53,7 @@ fn main() -> Result<()> {
     for (_, frame) in frames.iter_mut().enumerate() {
         let frame_ground_truth = manager.get_frame_ground_truth(&frame.timestamp);
         match frame_ground_truth {
-            Some(mut frame_gt) => manager.add_frame_result(&mut frame.objects, &mut frame_gt)?,
+            Some(frame_gt) => manager.add_frame_result(&frame.objects, &frame_gt)?,
             None => continue,
         }
     }

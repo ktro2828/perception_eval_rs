@@ -7,7 +7,7 @@ use crate::{
     dataset::{get_current_frame, load_dataset, DatasetResult, FrameGroundTruth},
     evaluation_task::EvaluationTask,
     filter::{divide_objects_to_num, divide_results, filter_objects},
-    matching::MatchingMode,
+    matching::{MatchingMode, MatchingResult},
     metrics::{
         error::{MetricsError, MetricsResult},
         score::MetricsScore,
@@ -44,23 +44,23 @@ impl<'a> PerceptionEvaluationManager<'a> {
 
     pub fn add_frame_result(
         &mut self,
-        estimated_objects: &mut Vec<DynamicObject>,
-        frame_ground_truth: &mut FrameGroundTruth,
-    ) -> MetricsResult<()> {
-        let estimated_objects = self.filter_objects(estimated_objects, false);
-        let frame_gt = self.filter_objects(frame_ground_truth.objects.as_mut(), true);
-        frame_ground_truth.objects = frame_gt;
+        estimated_objects: &Vec<DynamicObject>,
+        frame_ground_truth: &FrameGroundTruth,
+    ) -> MatchingResult<()> {
+        let filtered_estimations =
+            filter_objects(estimated_objects, false, &self.config.filter_params);
+        let filtered_frame_ground_truth = self.filter_frame_ground_truth(frame_ground_truth);
 
-        let results = get_perception_results(&estimated_objects, &frame_ground_truth.objects);
+        let results =
+            get_perception_results(&filtered_estimations, &filtered_frame_ground_truth.objects);
 
         let frame_result = PerceptionFrameResult::new(
             results,
-            frame_ground_truth.to_owned(),
+            filtered_frame_ground_truth,
             &self.config.filter_params.target_labels,
             MatchingMode::PlaneDistance,
             &self.config.metrics_params.plane_distance_thresholds,
-        )
-        .unwrap(); // TODO
+        )?;
         self.frame_results.push(frame_result);
         Ok(())
     }
@@ -114,7 +114,16 @@ impl<'a> PerceptionEvaluationManager<'a> {
         Ok(score)
     }
 
-    fn filter_objects(&self, objects: &mut Vec<DynamicObject>, is_gt: bool) -> Vec<DynamicObject> {
-        filter_objects(objects, is_gt, &self.config.filter_params)
+    fn filter_frame_ground_truth(&self, frame_ground_truth: &FrameGroundTruth) -> FrameGroundTruth {
+        let filtered_gt = filter_objects(
+            &frame_ground_truth.objects,
+            true,
+            &self.config.filter_params,
+        );
+
+        FrameGroundTruth {
+            timestamp: frame_ground_truth.timestamp.to_owned(),
+            objects: filtered_gt,
+        }
     }
 }
