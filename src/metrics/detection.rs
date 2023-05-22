@@ -25,10 +25,10 @@ impl DetectionMetricsScore {
         let num_targets = target_labels.len();
         let mut ap_list = vec![0.0; num_targets];
         let mut aph_list = vec![0.0; num_targets];
-        for ((i, target_label), threshold) in target_labels
+        for (i, (target_label, threshold)) in target_labels
             .iter()
-            .enumerate()
             .zip(matching_thresholds.iter())
+            .enumerate()
         {
             let results = results_map.get(&target_label.to_string()).unwrap();
             let num_gt = num_gt_map.get(&target_label.to_string()).unwrap();
@@ -38,8 +38,8 @@ impl DetectionMetricsScore {
                 Ap::new(results, &num_gt).calculate_ap(TPMetricsAPH, matching_mode, threshold);
         }
 
-        scores.insert("AP".to_string(), ap_list);
-        scores.insert("APH".to_string(), aph_list);
+        scores.insert(String::from("AP"), ap_list);
+        scores.insert(String::from("APH"), aph_list);
 
         // TODO: Refactor DO NOT USE to_owned()
         Self {
@@ -113,8 +113,7 @@ impl<'a> Ap<'a> {
             f64::NAN
         } else {
             let mut ap = 0.0;
-            let num_max_precision_list = max_precision_list.len();
-            for i in 0..num_max_precision_list - 1 {
+            for i in 0..max_precision_list.len() - 1 {
                 ap += max_precision_list[i] * (max_recall_list[i] - max_recall_list[i + 1]);
             }
             ap
@@ -149,20 +148,17 @@ impl<'a> Ap<'a> {
             let mut precision_list = vec![0.0; num_results];
             let mut recall_list = vec![0.0; num_results];
 
-            for (i, ((precision, recall), tp)) in precision_list
+            precision_list
                 .iter_mut()
                 .zip(recall_list.iter_mut())
                 .zip(tp_list.iter())
                 .enumerate()
-            {
-                let i_float = i as f64;
-                let num_gt_float = *self.num_ground_truth as f64;
-                *precision = tp / (i_float + 1.0);
-                if *self.num_ground_truth > 0 {
-                    *recall = tp / num_gt_float;
-                }
-            }
-
+                .for_each(|(i, ((precision, recall), tp))| {
+                    *precision = tp / (1.0 + i as f64);
+                    if *self.num_ground_truth > 0 {
+                        *recall = tp / *self.num_ground_truth as f64;
+                    }
+                });
             (precision_list, recall_list)
         }
     }
@@ -183,13 +179,13 @@ impl<'a> Ap<'a> {
             let mut tp_list = vec![0.0; num_results];
             let mut fp_list = vec![0.0; num_results];
 
-            for (i, result) in self.results.iter().enumerate() {
+            self.results.iter().enumerate().for_each(|(i, result)| {
                 if result.is_result_correct(matching_mode, threshold).unwrap() {
                     tp_list[i] = tp_metrics.get_value(result);
                 } else {
                     fp_list[i] = 1.0;
                 }
-            }
+            });
 
             tp_list.iter_mut().fold(0.0, |acc, x| {
                 *x += acc;
