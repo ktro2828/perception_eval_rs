@@ -1,6 +1,6 @@
 # perception_eval_rs
 
-A rust wrapper of [tier4/autoware_perception_evaluation](https://github.com/tier4/autoware_perception_evaluation).
+A rust implemented [tier4/autoware_perception_evaluation](https://github.com/tier4/autoware_perception_evaluation).
 
 ## Support
 
