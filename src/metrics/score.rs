@@ -12,9 +12,9 @@ use super::detection::DetectionMetricsScore;
 
 #[derive(Debug, Clone)]
 pub struct MetricsScore {
-    pub(crate) evaluation_task: EvaluationTask,
-    pub(crate) params: MetricsParams,
-    pub(crate) scores: Vec<DetectionMetricsScore>,
+    evaluation_task: EvaluationTask,
+    params: MetricsParams,
+    scores: Vec<DetectionMetricsScore>,
 }
 
 impl Display for MetricsScore {
@@ -28,7 +28,7 @@ impl Display for MetricsScore {
 }
 
 impl MetricsScore {
-    pub fn new(evaluation_task: &EvaluationTask, params: &MetricsParams) -> Self {
+    pub(crate) fn new(evaluation_task: &EvaluationTask, params: &MetricsParams) -> Self {
         let scores: Vec<DetectionMetricsScore> = Vec::new();
         Self {
             evaluation_task: evaluation_task.to_owned(),
@@ -37,7 +37,7 @@ impl MetricsScore {
         }
     }
 
-    pub fn evaluate_detection(
+    pub(crate) fn evaluate_detection(
         &mut self,
         results_map: &HashMap<String, Vec<PerceptionResult>>,
         num_gt_map: &HashMap<String, usize>,
