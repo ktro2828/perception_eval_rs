@@ -5,6 +5,7 @@ use std::{
     fmt::{Display, Formatter, Result as FormatResult},
 };
 
+/// Manager to calculate metrics score for detection task.
 #[derive(Debug, Clone)]
 pub(crate) struct DetectionMetricsScore {
     pub(crate) target_labels: Vec<Label>,
@@ -14,6 +15,13 @@ pub(crate) struct DetectionMetricsScore {
 }
 
 impl DetectionMetricsScore {
+    /// Construct `DetectionMetricsScore`.
+    ///
+    /// * `results_map`         - Hashmap that key is the name of label and value is list of corresponding PerceptionResult.
+    /// * `num_gt_map`          - Hashmap that key is the name of label and value is the number of corresponding GTs.
+    /// * `target_labels`       - List of Label instances.
+    /// * `matching_mode`       - MatchingMode instance.
+    /// * `matching_thresholds` - List of matching thresholds.
     pub(crate) fn new(
         results_map: &HashMap<String, Vec<PerceptionResult>>,
         num_gt_map: &HashMap<String, usize>,
@@ -81,6 +89,7 @@ impl Display for DetectionMetricsScore {
     }
 }
 
+/// Manager to calculate Average Precision (AP) and Average Precision Heading (APH) for each set of labels.
 #[derive(Debug)]
 pub(super) struct Ap<'a> {
     results: &'a Vec<PerceptionResult>,
@@ -88,6 +97,10 @@ pub(super) struct Ap<'a> {
 }
 
 impl<'a> Ap<'a> {
+    /// Construct `Ap`  instance.
+    ///
+    /// * `results`             - List of PerceptionResult.
+    /// * `num_ground_truth`    - Number of GTs.
     pub(super) fn new(results: &'a Vec<PerceptionResult>, num_ground_truth: &'a usize) -> Self {
         Self {
             results: results,
@@ -95,6 +108,11 @@ impl<'a> Ap<'a> {
         }
     }
 
+    /// Calculate AP or APH score. Whether which metrics is used, that means AP or APH, depends on `tp_metrics`.
+    ///
+    /// * `tp_metrics`      - TP metrics. `TPMetricsAP` or `TPMetricsAPH`.
+    /// * `matching_mode`   - MatchingMode instance.
+    /// * `threshold`       - Matching threshold.
     pub(super) fn calculate_ap<T>(
         &self,
         tp_metrics: T,
@@ -120,6 +138,10 @@ impl<'a> Ap<'a> {
         }
     }
 
+    /// Interpolate precision and recall values.
+    ///
+    /// * `precision_list`  - List of precisions.
+    /// * `recall_list`     - List of recalls.
     fn interpolate_precision_recall(
         &self,
         precision_list: Vec<f64>,
@@ -140,6 +162,9 @@ impl<'a> Ap<'a> {
         }
     }
 
+    /// Compute precision and recall values.
+    ///
+    /// * `tp_list` - List of TP values.
     fn calculate_precision_recall(&self, tp_list: &Vec<f64>) -> (Vec<f64>, Vec<f64>) {
         if self.results.len() == 0 && *self.num_ground_truth == 0 {
             (Vec::new(), Vec::new())
@@ -163,6 +188,11 @@ impl<'a> Ap<'a> {
         }
     }
 
+    /// Compute TP and FP values.
+    ///
+    /// * `tp_metrics`      - TP metrics.
+    /// * `matching_mode`   - MatchingMode instance.
+    /// * `threshold`       - Threshold value.
     fn calculate_tp_fp<T>(
         &self,
         tp_metrics: T,

@@ -2,10 +2,15 @@ use std::f64::consts::PI;
 
 use crate::result::object::PerceptionResult;
 
+/// Trait for TP metrics strategy.
 pub(super) trait TPMetrics {
+    /// Returns TP score depending on strategy.
+    ///
+    /// * `result`  - PerceptionResult instance.
     fn get_value(&self, result: &PerceptionResult) -> f64;
 }
 
+/// AP metrics that always returns 1.0 for TP results.
 #[derive(Debug)]
 pub(super) struct TPMetricsAP;
 
@@ -18,6 +23,7 @@ impl TPMetrics for TPMetricsAP {
     }
 }
 
+/// APH metrics that returns the error of heading between estimation and GT.
 #[derive(Debug)]
 pub(super) struct TPMetricsAPH;
 

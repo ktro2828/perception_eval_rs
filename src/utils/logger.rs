@@ -7,14 +7,27 @@ use log4rs::{
 use std::error::Error;
 use std::path::Path;
 
-pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
+pub type LoggerResult<T> = std::result::Result<T, Box<dyn Error>>;
 
 /// Configure logger instance.
 /// The log output will be saved in `log_dir/output.log`.
 ///
 /// * `log_dir` - Directory path to save output log.
 /// * `level`   - Logging level.
-pub fn configure_logger(log_dir: &Path, level: Level) -> Result<()> {
+///
+/// # Examples
+/// ```
+/// use perception_eval::utils::logger::{configure_logger, LoggerResult};
+/// use log::Level;
+/// use std::path::Path;
+///
+/// fn main() -> LoggerResult<()> {
+///     let log_dir = Path::new("work_dir/log");
+///     configure_logger(&log_dir, Level::Info)?;
+///     Ok(())
+/// }
+/// ```
+pub fn configure_logger(log_dir: &Path, level: Level) -> LoggerResult<()> {
     let logfile: FileAppender = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new("{l} - {m}\n")))
         .build(log_dir.join("output.log"))?;

@@ -10,6 +10,7 @@ use thiserror::Error as ThisError;
 
 pub type ConfigResult<T> = Result<T, ConfigError>;
 
+/// Represents errors that is associated with `PerceptionEvaluationConfig`.
 #[derive(Debug, ThisError)]
 pub enum ConfigError {
     #[error("internal error")]
@@ -22,6 +23,7 @@ pub enum ConfigError {
     KeyError(String),
 }
 
+/// Configuration of entire evaluation settings.
 #[derive(Debug, Clone)]
 pub struct PerceptionEvaluationConfig {
     pub version: String,
@@ -37,6 +39,16 @@ pub struct PerceptionEvaluationConfig {
 }
 
 impl PerceptionEvaluationConfig {
+    /// Construct `PerceptionEvaluationConfig` instance.
+    ///
+    /// * `version`         - Name of dataset version defined in NuScenes or NuImages format, e.g. `v1.0-train`.
+    /// * `dataset_path`    - Root directory path of dataset.
+    /// * `evaluation_task` - EvaluationTask instance.
+    /// * `frame_id`        - Coordinates system where objects are with respect to.
+    /// * `result_dir`      - Root directory path to save productions such as log.
+    /// * `filter_params`   - Parameter set to filter out objects.
+    /// * `metrics_params`  - Parameter set to calculate metrics score.
+    /// * `load_raw_data`   - Indicates whether to load raw data, which is pointcloud or image.
     pub fn new<S>(
         version: &str,
         dataset_path: S,
@@ -73,6 +85,7 @@ impl PerceptionEvaluationConfig {
     }
 }
 
+/// Parameter set to filter out objects.
 #[derive(Debug, Clone)]
 pub struct FilterParams {
     pub(crate) target_labels: Vec<Label>,
@@ -83,6 +96,20 @@ pub struct FilterParams {
 }
 
 impl FilterParams {
+    /// Construct `FilterParams`.
+    ///
+    /// * `target_labels`       - List of labels should be evaluated.
+    /// * `max_x_position`      - Maximum absolute value in the x direction from ego that can be evaluated.
+    /// * `max_y_position`      - Maximum absolute value in the y direction from ego that can be evaluated.
+    /// * `min_point_number`    - Minimum number of points that GT that can be evaluated should contain.
+    /// * `target_uuids`        - List of uuids that GT that can be evaluated should have.
+    ///
+    /// # Examples
+    /// ```
+    /// use perception_eval::config::FilterParams;
+    ///
+    /// let params = FilterParams::new(&vec!["Car", "Pedestrian", "Bus"], 100.0, 100.0, Some(0), None);
+    /// ```
     pub fn new(
         target_labels: &Vec<&str>,
         max_x_position: f64,
@@ -113,6 +140,7 @@ impl FilterParams {
     }
 }
 
+/// Parameter set to calculate metrics score.
 #[derive(Debug, Clone)]
 pub struct MetricsParams {
     pub(crate) target_labels: Vec<Label>,
@@ -123,6 +151,20 @@ pub struct MetricsParams {
 }
 
 impl MetricsParams {
+    /// Construct `MetricsParams`.
+    ///
+    /// * `target_labels`               - List of labels should be evaluated.
+    /// * `center_distance_threshold`   - Center distance threshold.
+    /// * `plane_distance_threshold`    - Plane distance threshold.
+    /// * `iou2d_threshold`             - IoU2D threshold.
+    /// * `iou3d_threshold`             - IoU3D threshold.
+    ///
+    /// # Examples
+    /// ```
+    /// use perception_eval::config::MetricsParams;
+    ///
+    /// let params = MetricsParams::new(&vec!["Car", "Pedestrian", "Bus"], 1.0, 1.0, 0.5, 0.5);
+    /// ```
     pub fn new(
         target_labels: &Vec<&str>,
         center_distance_threshold: f64,
@@ -149,6 +191,34 @@ impl MetricsParams {
     }
 }
 
+/// Returns the tuple of `FilterParams` and `MetricsParams`.
+///
+/// * `target_labels`               - List of labels should be evaluated.
+/// * `max_x_position`      - Maximum absolute value in the x direction from ego that can be evaluated.
+/// * `max_y_position`      - Maximum absolute value in the y direction from ego that can be evaluated.
+/// * `min_point_number`    - Minimum number of points that GT that can be evaluated should contain.
+/// * `target_uuids`        - List of uuids that GT that can be evaluated should have.
+/// * `center_distance_threshold`   - Center distance threshold.
+/// * `plane_distance_threshold`    - Plane distance threshold.
+/// * `iou2d_threshold`             - IoU2D threshold.
+/// * `iou3d_threshold`             - IoU3D threshold.
+///
+/// # Examples
+/// ```
+/// use perception_eval::config::get_evaluation_params;
+///
+/// let (filter_params, metrics_params) = get_evaluation_params(
+///     &vec!["Car", "Pedestrian", "Bus"],
+///     100.0,
+///     100.0,
+///     Some(0),
+///     None,
+///     1.0,
+///     1.0,
+///     0.5,
+///     0.5,
+/// ).unwrap();
+/// ```
 pub fn get_evaluation_params(
     target_labels: &Vec<&str>,
     max_x_position: f64,

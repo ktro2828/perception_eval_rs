@@ -8,6 +8,15 @@ use crate::{
 
 use super::object::PerceptionResult;
 
+/// A set of `PerceptionResult` at one frame.
+///
+/// A list of TP, FP and FN results are determined in `::new()` method.
+///
+/// * `results`             - List of PerceptionResult.
+/// * `frame_ground_truth`  - Set of GT objects at current frame.
+/// * `tp_results`          - List of PerceptionResult determined as TP.
+/// * `fp_results`          - List of PerceptionResult determined as FP.
+/// * `fn_results`          - List of DynamicObject of GT determined as FN.
 #[derive(Debug, Clone)]
 pub struct PerceptionFrameResult {
     results: Vec<PerceptionResult>,
@@ -38,6 +47,13 @@ impl PerceptionFrameResult {
         &self.fn_objects
     }
 
+    /// Construct `PerceptionFrameResult`.
+    ///
+    /// * `results`             - List of PerceptionResult.
+    /// * `frame_ground_truth`  - Set of GT objects at current frame.
+    /// * `target_labels`       - List of Label instances.
+    /// * `matching_mode`       - MatchingMode to determine whether results are TP or FP.
+    /// * `matching_thresholds` - List of matching thresholds.
     pub fn new(
         results: Vec<PerceptionResult>,
         frame_ground_truth: FrameGroundTruth,
@@ -65,10 +81,10 @@ impl PerceptionFrameResult {
 ///
 /// TODO: remove clone
 ///
-/// * `results`
-/// * `target_labels`
-/// * `matching_mode`
-/// * `matching_thresholds`
+/// * `results`             - List of PerceptionResult at current frame.
+/// * `target_labels`       - List of Label instances.
+/// * `matching_mode`       - MatchingMode instance to determine TP or FP.
+/// * `matching_thresholds` - List of matching thresholds.
 fn separate_tp_fp_results(
     results: &Vec<PerceptionResult>,
     target_labels: &Vec<Label>,
@@ -97,12 +113,12 @@ fn separate_tp_fp_results(
     Ok((tp_results, fp_results))
 }
 
-/// Extract FN objects.
+/// Extract FN objects comparing whether input GTs are made up of TP results.
 ///
 /// TODO: remove clone
 ///
-/// * `ground_truths`
-/// * `tp_results`
+/// * `ground_truths`   : List of GT objects.
+/// * `tp_results`      : List of TP results.
 fn extract_fn_objects(
     ground_truths: &Vec<DynamicObject>,
     tp_results: &Vec<PerceptionResult>,
@@ -118,10 +134,10 @@ fn extract_fn_objects(
     fn_objects
 }
 
-/// Check whether input ground truth is contained in the input list of TP results.
+/// Check whether the input ground truth is contained in the input list of TP results.
 ///
-/// * `ground_truth`
-/// * `tp_results`
+/// * `ground_truth`: GT object.
+/// * `tp_results`  : List of TP results.
 fn is_fn_object(ground_truth: &DynamicObject, tp_results: &Vec<PerceptionResult>) -> bool {
     for tp in tp_results {
         match &tp.ground_truth_object {
