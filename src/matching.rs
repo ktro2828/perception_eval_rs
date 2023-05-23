@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::utils::point::{distance_points_bev, get_point_left_right};
 
 use super::object::object3d::DynamicObject;
@@ -70,19 +72,17 @@ impl MatchingMethod for PlaneDistanceMatching {
         estimated_object: &DynamicObject,
         ground_truth_object: &DynamicObject,
     ) -> f64 {
-        let mut est_footprint = estimated_object.footprint();
-        est_footprint.sort_by(|p1, p2| {
+        let sort_func = |p1: &[f64; 3], p2: &[f64; 3]| -> Ordering {
             let d1 = p1[0].hypot(p1[1]);
             let d2 = p2[0].hypot(p2[1]);
             d1.partial_cmp(&d2).unwrap()
-        });
+        };
+
+        let mut est_footprint = estimated_object.footprint();
+        est_footprint.sort_by(sort_func);
 
         let mut gt_footprint = ground_truth_object.footprint();
-        gt_footprint.sort_by(|p1, p2| {
-            let d1 = p1[0].hypot(p1[1]);
-            let d2 = p2[0].hypot(p2[1]);
-            d1.partial_cmp(&d2).unwrap()
-        });
+        gt_footprint.sort_by(sort_func);
 
         let (est_left_point, est_right_point) =
             get_point_left_right(&est_footprint[0], &est_footprint[1]);
