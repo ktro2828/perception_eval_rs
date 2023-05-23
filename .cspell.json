@@ -18,7 +18,6 @@
     "powf",
     "pullable",
     "pushable",
-    "structopt",
     "thiserror",
     "trafficcone"
   ]

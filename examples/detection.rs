@@ -9,9 +9,9 @@ use std::error::Error;
 
 #[derive(Parser)]
 struct Args {
-    #[structopt(short, long)]
+    #[clap(short = 'v', long = "version", default_value = "annotation")]
     version: String,
-    #[structopt(short, long)]
+    #[clap(short = 'd', long = "data-root", default_value = "./tests/sample_data")]
     data_root: String,
 }
 
