@@ -7,6 +7,7 @@ use crate::{
     dataset::{get_current_frame, load_dataset, DatasetResult, FrameGroundTruth},
     evaluation_task::EvaluationTask,
     filter::{divide_objects_to_num, divide_results, filter_objects},
+    label::Label,
     matching::{MatchingMode, MatchingResult},
     metrics::{
         error::{MetricsError, MetricsResult},
@@ -71,15 +72,13 @@ impl<'a> PerceptionEvaluationManager<'a> {
 
     pub fn get_scene_score(&self) -> MetricsResult<MetricsScore> {
         let target_labels = &self.config.metrics_params.target_labels;
-        let mut score =
-            MetricsScore::new(&self.config.evaluation_task, &self.config.metrics_params);
-        let mut scene_results: HashMap<String, Vec<PerceptionResult>> = HashMap::new();
+        let mut score = MetricsScore::new(&self.config.metrics_params);
+        let mut scene_results: HashMap<Label, Vec<PerceptionResult>> = HashMap::new();
         let mut num_scene_gt = HashMap::new();
 
         target_labels.iter().for_each(|label| {
-            let label_name = label.to_string();
-            scene_results.insert(label_name.to_owned(), Vec::new());
-            num_scene_gt.insert(label_name.to_owned(), 0);
+            scene_results.insert(label.to_owned(), Vec::new());
+            num_scene_gt.insert(label.to_owned(), 0);
         });
 
         self.frame_results.iter().for_each(|frame| {
@@ -87,16 +86,15 @@ impl<'a> PerceptionEvaluationManager<'a> {
             let num_gt_map =
                 divide_objects_to_num(&frame.frame_ground_truth().objects, &target_labels);
             for label in target_labels {
-                let label_name = label.to_string();
-                match scene_results.get_mut(&label_name) {
-                    Some(results) => match result_map.get_mut(&label_name) {
+                match scene_results.get_mut(&label) {
+                    Some(results) => match result_map.get_mut(&label) {
                         Some(result) => results.append(result),
                         None => (),
                     },
                     None => (),
                 };
-                match num_scene_gt.get_mut(&label_name) {
-                    Some(num_gts) => match num_gt_map.get(&label_name) {
+                match num_scene_gt.get_mut(&label) {
+                    Some(num_gts) => match num_gt_map.get(&label) {
                         Some(num_gt) => *num_gts += num_gt,
                         None => (),
                     },

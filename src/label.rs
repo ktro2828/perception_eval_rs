@@ -17,7 +17,7 @@ pub enum LabelError {
 }
 
 /// Represents name of labels.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Label {
     Unknown,
     Car,

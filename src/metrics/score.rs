@@ -4,15 +4,13 @@ use std::{
 };
 
 use crate::{
-    config::MetricsParams, evaluation_task::EvaluationTask, matching::MatchingMode,
-    result::object::PerceptionResult,
+    config::MetricsParams, label::Label, matching::MatchingMode, result::object::PerceptionResult,
 };
 
 use super::detection::DetectionMetricsScore;
 
 #[derive(Debug, Clone)]
 pub struct MetricsScore {
-    evaluation_task: EvaluationTask,
     params: MetricsParams,
     scores: Vec<DetectionMetricsScore>,
 }
@@ -28,10 +26,9 @@ impl Display for MetricsScore {
 }
 
 impl MetricsScore {
-    pub(crate) fn new(evaluation_task: &EvaluationTask, params: &MetricsParams) -> Self {
+    pub(crate) fn new(params: &MetricsParams) -> Self {
         let scores: Vec<DetectionMetricsScore> = Vec::new();
         Self {
-            evaluation_task: evaluation_task.to_owned(),
             params: params.to_owned(),
             scores: scores,
         }
@@ -39,8 +36,8 @@ impl MetricsScore {
 
     pub(crate) fn evaluate_detection(
         &mut self,
-        results_map: &HashMap<String, Vec<PerceptionResult>>,
-        num_gt_map: &HashMap<String, usize>,
+        results_map: &HashMap<Label, Vec<PerceptionResult>>,
+        num_gt_map: &HashMap<Label, usize>,
     ) {
         let center_distance_scores_map = DetectionMetricsScore::new(
             results_map,

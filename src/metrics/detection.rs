@@ -23,8 +23,8 @@ impl DetectionMetricsScore {
     /// * `matching_mode`       - MatchingMode instance.
     /// * `matching_thresholds` - List of matching thresholds.
     pub(crate) fn new(
-        results_map: &HashMap<String, Vec<PerceptionResult>>,
-        num_gt_map: &HashMap<String, usize>,
+        results_map: &HashMap<Label, Vec<PerceptionResult>>,
+        num_gt_map: &HashMap<Label, usize>,
         target_labels: &Vec<Label>,
         matching_mode: &MatchingMode,
         matching_thresholds: &Vec<f64>,
@@ -38,8 +38,8 @@ impl DetectionMetricsScore {
             .zip(matching_thresholds.iter())
             .enumerate()
         {
-            let results = results_map.get(&target_label.to_string()).unwrap();
-            let num_gt = num_gt_map.get(&target_label.to_string()).unwrap();
+            let results = results_map.get(&target_label).unwrap();
+            let num_gt = num_gt_map.get(&target_label).unwrap();
             ap_list[i] =
                 Ap::new(results, &num_gt).calculate_ap(TPMetricsAP, matching_mode, threshold);
             aph_list[i] =

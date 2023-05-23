@@ -159,7 +159,7 @@ fn is_target_object(
     is_target
 }
 
-/// Returns hashmap that key is label name and value is list of objects that have same label.
+/// Returns hashmap that key is `Label` and value is list of objects that have same label.
 ///
 /// * `objects`         - List of objects.
 /// * `target_labels`   - List of target labels.
@@ -167,15 +167,15 @@ fn is_target_object(
 pub(crate) fn divide_objects(
     objects: &Vec<DynamicObject>,
     target_labels: &Vec<Label>,
-) -> HashMap<String, Vec<DynamicObject>> {
-    let mut ret: HashMap<String, Vec<DynamicObject>> = HashMap::new();
+) -> HashMap<Label, Vec<DynamicObject>> {
+    let mut ret: HashMap<Label, Vec<DynamicObject>> = HashMap::new();
 
     for label in target_labels {
-        ret.insert(label.to_string(), Vec::new());
+        ret.insert(label.to_owned(), Vec::new());
     }
 
     for obj in objects {
-        match ret.get_mut(&obj.label_name()) {
+        match ret.get_mut(&obj.label) {
             Some(v) => v.push(obj.clone()),
             None => (),
         }
@@ -183,22 +183,22 @@ pub(crate) fn divide_objects(
     ret
 }
 
-/// Returns hashmap that key is label name and value is the number objects that have same label.
+/// Returns hashmap that key is `Label` and value is the number objects that have same label.
 ///
 /// * `objects`         - List of objects.
 /// * `target_labels`   - List of target labels.
 pub(crate) fn divide_objects_to_num(
     objects: &Vec<DynamicObject>,
     target_labels: &Vec<Label>,
-) -> HashMap<String, usize> {
-    let mut ret: HashMap<String, usize> = HashMap::new();
+) -> HashMap<Label, usize> {
+    let mut ret: HashMap<Label, usize> = HashMap::new();
 
     for label in target_labels {
-        ret.insert(label.to_string(), 0);
+        ret.insert(label.to_owned(), 0);
     }
 
     for obj in objects {
-        match ret.get_mut(&obj.label_name()) {
+        match ret.get_mut(&obj.label) {
             Some(v) => *v += 1,
             None => (),
         }
@@ -206,22 +206,22 @@ pub(crate) fn divide_objects_to_num(
     ret
 }
 
-/// Returns hashmap that key is label name and value is list of results that estimated object have same label.
+/// Returns hashmap that key is `Label` and value is list of results that estimated object have same label.
 ///
 /// * `results`         - List of results.
 /// * `target_labels`   - List of target labels.
 pub(crate) fn divide_results(
     results: &Vec<PerceptionResult>,
     target_labels: &Vec<Label>,
-) -> HashMap<String, Vec<PerceptionResult>> {
-    let mut ret: HashMap<String, Vec<PerceptionResult>> = HashMap::new();
+) -> HashMap<Label, Vec<PerceptionResult>> {
+    let mut ret: HashMap<Label, Vec<PerceptionResult>> = HashMap::new();
 
     for label in target_labels {
-        ret.insert(label.to_string(), Vec::new());
+        ret.insert(label.to_owned(), Vec::new());
     }
 
     for result in results {
-        match ret.get_mut(&result.estimated_object.label_name()) {
+        match ret.get_mut(&result.estimated_object.label) {
             Some(v) => v.push(result.clone()),
             None => (),
         }
@@ -229,7 +229,7 @@ pub(crate) fn divide_results(
     ret
 }
 
-/// Returns hashmap that key is label name and value is the number of results that estimated object have same label.
+/// Returns hashmap that key is `Label` and value is the number of results that estimated object have same label.
 ///
 /// * `results`         - List of results.
 /// * `target_labels`   - List of target labels.
@@ -237,15 +237,15 @@ pub(crate) fn divide_results(
 pub(crate) fn divide_results_to_num(
     results: &Vec<PerceptionResult>,
     target_labels: &Vec<Label>,
-) -> HashMap<String, usize> {
-    let mut ret: HashMap<String, usize> = HashMap::new();
+) -> HashMap<Label, usize> {
+    let mut ret: HashMap<Label, usize> = HashMap::new();
 
     for label in target_labels {
-        ret.insert(label.to_string(), 0);
+        ret.insert(label.to_owned(), 0);
     }
 
     for result in results {
-        match ret.get_mut(&result.estimated_object.label_name()) {
+        match ret.get_mut(&result.estimated_object.label) {
             Some(v) => *v += 1,
             None => (),
         }
@@ -281,8 +281,8 @@ mod tests {
 
         let object_map =
             divide_objects(&vec![object.clone()], &vec![Label::Car, Label::Pedestrian]);
-        assert_eq!(*object_map.get("Car").unwrap(), vec![object]);
-        assert_eq!(*object_map.get("Pedestrian").unwrap(), vec![]);
+        assert_eq!(*object_map.get(&Label::Car).unwrap(), vec![object]);
+        assert_eq!(*object_map.get(&Label::Pedestrian).unwrap(), vec![]);
     }
 
     #[test]
@@ -302,8 +302,8 @@ mod tests {
 
         let object_num_map =
             divide_objects_to_num(&vec![object], &vec![Label::Car, Label::Pedestrian]);
-        assert_eq!(*object_num_map.get("Car").unwrap(), 1);
-        assert_eq!(*object_num_map.get("Pedestrian").unwrap(), 0);
+        assert_eq!(*object_num_map.get(&Label::Car).unwrap(), 1);
+        assert_eq!(*object_num_map.get(&Label::Pedestrian).unwrap(), 0);
     }
 
     #[test]
