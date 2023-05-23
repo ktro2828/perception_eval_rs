@@ -106,56 +106,53 @@ fn is_target_object(
     let mut is_target = true;
 
     // target_labels
-    is_target = is_target && target_labels.contains(&object.label);
+    is_target &= target_labels.contains(&object.label);
 
     // max_x_positions
-    is_target = {
+    is_target &= {
         let max_x_position = label_threshold.get_threshold(max_x_positions);
-        is_target
-            && object.position[0].abs()
-                < max_x_position.unwrap_or_else(|| {
-                    log::error!("There is no corresponding max_x_position");
-                    panic!("There is no corresponding max_x_position")
-                })
+        object.position[0].abs()
+            < max_x_position.unwrap_or_else(|| {
+                log::error!("There is no corresponding max_x_position");
+                panic!("There is no corresponding max_x_position")
+            })
     };
 
     // max_y_positions
-    is_target = {
+    is_target &= {
         let max_y_position = label_threshold.get_threshold(max_y_positions);
-        is_target
-            && object.position[1].abs()
-                < max_y_position.unwrap_or_else(|| {
-                    log::error!("There is no corresponding max_y_position");
-                    panic!("There is no corresponding max_y_position")
-                })
+        object.position[1].abs()
+            < max_y_position.unwrap_or_else(|| {
+                log::error!("There is no corresponding max_y_position");
+                panic!("There is no corresponding max_y_position")
+            })
     };
 
     // min_point_numbers
-    is_target = {
+    is_target &= {
         match min_point_numbers {
             Some(thresholds) => match &object.pointcloud_num {
                 Some(pt_num) => {
                     let min_point_number = label_threshold.get_threshold(thresholds);
-                    is_target
-                        && min_point_number.unwrap_or_else(|| {
-                            log::warn!("There is no corresponding min_point_number, use 0");
-                            0
-                        }) <= *pt_num
+                    min_point_number.unwrap_or_else(|| {
+                        log::warn!("There is no corresponding min_point_number, use 0");
+                        0
+                    }) <= *pt_num
                 }
-                None => is_target,
+                None => true,
             },
-            None => is_target,
+            None => true,
         }
     };
 
     // target_uuids
-    is_target = {
+    is_target &= {
         match target_uuids {
             Some(thresholds) => match &object.uuid {
-                Some(uuid) => is_target && thresholds.contains(&uuid),
+                Some(uuid) => thresholds.contains(&uuid),
                 None => false,
             },
-            None => is_target,
+            None => true,
         }
     };
 
