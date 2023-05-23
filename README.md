@@ -1,6 +1,6 @@
 # perception_eval_rs
 
-A rust implemented [tier4/autoware_perception_evaluation](https://github.com/tier4/autoware_perception_evaluation).
+Rust bindings of [tier4/autoware_perception_evaluation](https://github.com/tier4/autoware_perception_evaluation).
 
 ## Support
 
