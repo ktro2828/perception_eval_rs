@@ -164,7 +164,7 @@ fn is_target_object(
 /// * `objects`         - List of objects.
 /// * `target_labels`   - List of target labels.
 #[allow(unused)]
-pub(crate) fn divide_objects(
+pub(crate) fn hash_objects(
     objects: &Vec<DynamicObject>,
     target_labels: &Vec<Label>,
 ) -> HashMap<Label, Vec<DynamicObject>> {
@@ -188,7 +188,7 @@ pub(crate) fn divide_objects(
 ///
 /// * `objects`         - List of objects.
 /// * `target_labels`   - List of target labels.
-pub(crate) fn divide_objects_to_num(
+pub(crate) fn hash_num_objects(
     objects: &Vec<DynamicObject>,
     target_labels: &Vec<Label>,
 ) -> HashMap<Label, usize> {
@@ -212,7 +212,7 @@ pub(crate) fn divide_objects_to_num(
 ///
 /// * `results`         - List of results.
 /// * `target_labels`   - List of target labels.
-pub(crate) fn divide_results(
+pub(crate) fn hash_results(
     results: &Vec<PerceptionResult>,
     target_labels: &Vec<Label>,
 ) -> HashMap<Label, Vec<PerceptionResult>> {
@@ -237,7 +237,7 @@ pub(crate) fn divide_results(
 /// * `results`         - List of results.
 /// * `target_labels`   - List of target labels.
 #[allow(unused)]
-pub(crate) fn divide_results_to_num(
+pub(crate) fn hash_num_results(
     results: &Vec<PerceptionResult>,
     target_labels: &Vec<Label>,
 ) -> HashMap<Label, usize> {
@@ -261,7 +261,7 @@ pub(crate) fn divide_results_to_num(
 
 mod tests {
     use crate::{
-        filter::{divide_objects, divide_objects_to_num, is_target_object},
+        filter::{hash_num_objects, hash_objects, is_target_object},
         frame_id::FrameID,
         label::Label,
         object::object3d::DynamicObject,
@@ -269,7 +269,7 @@ mod tests {
     use chrono::NaiveDateTime;
 
     #[test]
-    fn test_divide_objects() {
+    fn test_hash_objects() {
         let object = DynamicObject {
             timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
             frame_id: FrameID::BaseLink,
@@ -283,14 +283,13 @@ mod tests {
             uuid: Some("111".to_string()),
         };
 
-        let object_map =
-            divide_objects(&vec![object.clone()], &vec![Label::Car, Label::Pedestrian]);
+        let object_map = hash_objects(&vec![object.clone()], &vec![Label::Car, Label::Pedestrian]);
         assert_eq!(*object_map.get(&Label::Car).unwrap(), vec![object]);
         assert_eq!(*object_map.get(&Label::Pedestrian).unwrap(), vec![]);
     }
 
     #[test]
-    fn test_divide_objects_to_num() {
+    fn test_hash_num_objects() {
         let object = DynamicObject {
             timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
             frame_id: FrameID::BaseLink,
@@ -304,8 +303,7 @@ mod tests {
             uuid: Some("111".to_string()),
         };
 
-        let object_num_map =
-            divide_objects_to_num(&vec![object], &vec![Label::Car, Label::Pedestrian]);
+        let object_num_map = hash_num_objects(&vec![object], &vec![Label::Car, Label::Pedestrian]);
         assert_eq!(*object_num_map.get(&Label::Car).unwrap(), 1);
         assert_eq!(*object_num_map.get(&Label::Pedestrian).unwrap(), 0);
     }

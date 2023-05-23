@@ -6,7 +6,7 @@ use crate::{
     config::PerceptionEvaluationConfig,
     dataset::{get_current_frame, load_dataset, DatasetResult, FrameGroundTruth},
     evaluation_task::EvaluationTask,
-    filter::{divide_objects_to_num, divide_results, filter_objects},
+    filter::{filter_objects, hash_num_objects, hash_results},
     label::Label,
     matching::{MatchingMode, MatchingResult},
     metrics::{
@@ -82,9 +82,8 @@ impl<'a> PerceptionEvaluationManager<'a> {
         });
 
         self.frame_results.iter().for_each(|frame| {
-            let mut result_map = divide_results(frame.results(), &target_labels);
-            let num_gt_map =
-                divide_objects_to_num(&frame.frame_ground_truth().objects, &target_labels);
+            let mut result_map = hash_results(frame.results(), &target_labels);
+            let num_gt_map = hash_num_objects(&frame.frame_ground_truth().objects, &target_labels);
             for label in target_labels {
                 match scene_results.get_mut(&label) {
                     Some(results) => match result_map.get_mut(&label) {
