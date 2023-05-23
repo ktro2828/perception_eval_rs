@@ -1,6 +1,7 @@
 # perception_eval_rs
 
-Rust bindings of [tier4/autoware_perception_evaluation](https://github.com/tier4/autoware_perception_evaluation).
+Rust binding of [tier4/autoware_perception_evaluation](https://github.com/tier4/autoware_perception_evaluation).
+`perception_eval_rs` provides modules to evaluate perception outputs recognized by your object recognition functions.
 
 ## Support
 
