@@ -17,7 +17,7 @@ struct Args {
     data_root: PathBuf,
 }
 
-pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 fn main() -> Result<()> {
     let log_dir_name = format!(
