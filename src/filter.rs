@@ -170,16 +170,17 @@ pub(crate) fn divide_objects(
 ) -> HashMap<Label, Vec<DynamicObject>> {
     let mut ret: HashMap<Label, Vec<DynamicObject>> = HashMap::new();
 
-    for label in target_labels {
+    target_labels.iter().for_each(|label| {
         ret.insert(label.to_owned(), Vec::new());
-    }
+    });
 
-    for obj in objects {
-        match ret.get_mut(&obj.label) {
+    objects
+        .iter()
+        .for_each(|obj| match ret.get_mut(&obj.label) {
             Some(v) => v.push(obj.clone()),
             None => (),
-        }
-    }
+        });
+
     ret
 }
 
@@ -193,16 +194,17 @@ pub(crate) fn divide_objects_to_num(
 ) -> HashMap<Label, usize> {
     let mut ret: HashMap<Label, usize> = HashMap::new();
 
-    for label in target_labels {
+    target_labels.iter().for_each(|label| {
         ret.insert(label.to_owned(), 0);
-    }
+    });
 
-    for obj in objects {
-        match ret.get_mut(&obj.label) {
+    objects
+        .iter()
+        .for_each(|obj| match ret.get_mut(&obj.label) {
             Some(v) => *v += 1,
             None => (),
-        }
-    }
+        });
+
     ret
 }
 
@@ -216,16 +218,17 @@ pub(crate) fn divide_results(
 ) -> HashMap<Label, Vec<PerceptionResult>> {
     let mut ret: HashMap<Label, Vec<PerceptionResult>> = HashMap::new();
 
-    for label in target_labels {
+    target_labels.iter().for_each(|label| {
         ret.insert(label.to_owned(), Vec::new());
-    }
+    });
 
-    for result in results {
-        match ret.get_mut(&result.estimated_object.label) {
+    results
+        .iter()
+        .for_each(|result| match ret.get_mut(&result.estimated_object.label) {
             Some(v) => v.push(result.clone()),
             None => (),
-        }
-    }
+        });
+
     ret
 }
 
@@ -240,16 +243,17 @@ pub(crate) fn divide_results_to_num(
 ) -> HashMap<Label, usize> {
     let mut ret: HashMap<Label, usize> = HashMap::new();
 
-    for label in target_labels {
+    target_labels.iter().for_each(|label| {
         ret.insert(label.to_owned(), 0);
-    }
+    });
 
-    for result in results {
-        match ret.get_mut(&result.estimated_object.label) {
+    results
+        .iter()
+        .for_each(|result| match ret.get_mut(&result.estimated_object.label) {
             Some(v) => *v += 1,
             None => (),
-        }
-    }
+        });
+
     ret
 }
 
