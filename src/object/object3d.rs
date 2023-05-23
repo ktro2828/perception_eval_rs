@@ -44,7 +44,7 @@ pub struct DynamicObject {
     pub velocity: Option<[f64; 3]>,
     pub confidence: f64,
     pub label: Label,
-    pub pointcloud_num: Option<isize>,
+    pub pointcloud_num: Option<usize>,
     pub uuid: Option<String>,
 }
 

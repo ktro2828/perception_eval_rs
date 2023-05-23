@@ -78,7 +78,7 @@ pub struct FilterParams {
     pub(crate) target_labels: Vec<Label>,
     pub(crate) max_x_positions: Vec<f64>,
     pub(crate) max_y_positions: Vec<f64>,
-    pub(crate) min_point_numbers: Option<Vec<isize>>,
+    pub(crate) min_point_numbers: Option<Vec<usize>>,
     pub(crate) target_uuids: Option<Vec<String>>,
 }
 
@@ -87,7 +87,7 @@ impl FilterParams {
         target_labels: &Vec<&str>,
         max_x_position: f64,
         max_y_position: f64,
-        min_point_number: Option<isize>,
+        min_point_number: Option<usize>,
         target_uuids: Option<Vec<String>>,
     ) -> LabelResult<Self> {
         let label_converter = LabelConverter::new("autoware")?;
@@ -153,7 +153,7 @@ pub fn get_evaluation_params(
     target_labels: &Vec<&str>,
     max_x_position: f64,
     max_y_position: f64,
-    min_point_number: Option<isize>,
+    min_point_number: Option<usize>,
     target_uuids: Option<Vec<String>>,
     center_distance_threshold: f64,
     plane_distance_threshold: f64,

@@ -147,8 +147,8 @@ pub struct Sample {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SampleAnnotation {
     pub token: LongToken,
-    pub num_lidar_pts: isize,
-    pub num_radar_pts: isize,
+    pub num_lidar_pts: usize,
+    pub num_radar_pts: usize,
     pub size: [f64; 3],
     pub rotation: [f64; 4],
     pub translation: [f64; 3],

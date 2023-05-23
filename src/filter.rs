@@ -98,7 +98,7 @@ fn is_target_object(
     target_labels: &Vec<Label>,
     max_x_positions: &Vec<f64>,
     max_y_positions: &Vec<f64>,
-    min_point_numbers: &Option<Vec<isize>>,
+    min_point_numbers: &Option<Vec<usize>>,
     target_uuids: &Option<Vec<String>>,
 ) -> bool {
     let label_threshold = LabelThreshold::new(&object.label, target_labels);
