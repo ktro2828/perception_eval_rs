@@ -212,8 +212,8 @@ fn get_intersection_height(
 
     let max_z = {
         [
-            estimated_object.position[2] - estimated_object.size[2] * 0.5,
-            ground_truth_object.position[2] - ground_truth_object.size[2] * 0.5,
+            estimated_object.position[2] + estimated_object.size[2] * 0.5,
+            ground_truth_object.position[2] + ground_truth_object.size[2] * 0.5,
         ]
         .into_iter()
         .max_by(|a, b| a.partial_cmp(b).unwrap())
