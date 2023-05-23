@@ -233,3 +233,152 @@ fn get_intersection_volume(
     get_intersection_area(estimated_object, ground_truth_object)
         * get_intersection_height(estimated_object, ground_truth_object)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        CenterDistanceMatching, Iou2dMatching, Iou3dMatching, MatchingMethod, PlaneDistanceMatching,
+    };
+    use crate::{frame_id::FrameID, label::Label, object::object3d::DynamicObject};
+    use chrono::NaiveDateTime;
+
+    #[test]
+    fn test_center_distance_matching() {
+        let estimation = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+
+        let ground_truth = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("100".to_string()),
+        };
+
+        let ans_score = CenterDistanceMatching.calculate_matching_score(&estimation, &ground_truth);
+        assert_eq!(ans_score, 0.0);
+
+        let ans_is_better = CenterDistanceMatching.is_better_than(&estimation, &ground_truth, &1.0);
+        assert_eq!(ans_is_better, true);
+    }
+
+    #[test]
+    fn test_plane_distance_matching() {
+        let estimation = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+
+        let ground_truth = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("100".to_string()),
+        };
+
+        let ans_score = PlaneDistanceMatching.calculate_matching_score(&estimation, &ground_truth);
+        assert_eq!(ans_score, 0.0);
+
+        let ans_is_better = PlaneDistanceMatching.is_better_than(&estimation, &ground_truth, &1.0);
+        assert_eq!(ans_is_better, true);
+    }
+
+    #[test]
+    fn test_iou2d_matching() {
+        let estimation = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+
+        let ground_truth = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("100".to_string()),
+        };
+
+        let ans_score = Iou2dMatching.calculate_matching_score(&estimation, &ground_truth);
+        assert_eq!(ans_score, 1.0);
+
+        let ans_is_better = Iou2dMatching.is_better_than(&estimation, &ground_truth, &0.5);
+        assert_eq!(ans_is_better, true);
+    }
+
+    #[test]
+    fn test_iou3d_matching() {
+        let estimation = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("111".to_string()),
+        };
+
+        let ground_truth = DynamicObject {
+            timestamp: NaiveDateTime::from_timestamp_micros(10000).unwrap(),
+            frame_id: FrameID::BaseLink,
+            position: [1.0, 1.0, 0.0],
+            orientation: [1.0, 0.0, 0.0, 0.0],
+            size: [2.0, 1.0, 1.0],
+            velocity: None,
+            confidence: 1.0,
+            label: Label::Car,
+            pointcloud_num: Some(1000),
+            uuid: Some("100".to_string()),
+        };
+
+        let ans_score = Iou3dMatching.calculate_matching_score(&estimation, &ground_truth);
+        assert_eq!(ans_score, 1.0);
+
+        let ans_is_better = Iou3dMatching.is_better_than(&estimation, &ground_truth, &0.5);
+        assert_eq!(ans_is_better, true);
+    }
+}
