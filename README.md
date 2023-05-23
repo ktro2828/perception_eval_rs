@@ -89,7 +89,7 @@ $ cargo doc --open
 
 ## Examples
 
-Run the following code to run examples.
+Run the following code to run examples. See [examples](./examples).
 
 ```shell
 # if you want see details
