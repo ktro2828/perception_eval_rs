@@ -149,7 +149,7 @@ impl<'a> PerceptionEvaluationManager<'a> {
         self.frame_results.iter().for_each(|frame| {
             let mut result_map = hash_results(frame.results(), &target_labels);
             let num_gt_map = hash_num_objects(&frame.frame_ground_truth().objects, &target_labels);
-            for label in target_labels {
+            target_labels.iter().for_each(|label| {
                 match scene_results.get_mut(&label) {
                     Some(results) => match result_map.get_mut(&label) {
                         Some(result) => results.append(result),
@@ -164,7 +164,7 @@ impl<'a> PerceptionEvaluationManager<'a> {
                     },
                     None => (),
                 };
-            }
+            });
         });
 
         match self.config.evaluation_task {
