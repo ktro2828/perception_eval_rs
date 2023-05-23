@@ -258,7 +258,6 @@ pub(crate) fn hash_num_results(
 }
 
 #[cfg(test)]
-
 mod tests {
     use crate::{
         filter::{hash_num_objects, hash_objects, is_target_object},
