@@ -3,7 +3,7 @@ name = "perception-eval"
 version = "0.1.0"
 authors = ["Kotaro Uetak <kotaro.uetake@tier4.jp>"]
 edition = "2021"
-description = "A Rust wrapper of tier4/autoware_perception_evaluation"
+description = "Rust binding of tier4/autoware_perception_evaluation"
 readme = "README.md"
 license = "MIT"
 
