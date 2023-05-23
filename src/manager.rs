@@ -19,6 +19,14 @@ use crate::{
     },
 };
 
+/// Manager of perception evaluation.
+///
+/// In order to construct, use the `::new()` method.
+///
+/// For each frame, the evaluated `PerceptionFrameResult` is accumulated in `frame_results`
+/// with the `add_frame_result()` method.
+///
+/// The `get_metrics_score()` method calculates a total metrics score with stacked `frame_results` till that time.
 #[derive(Debug, Clone)]
 pub struct PerceptionEvaluationManager<'a> {
     pub config: &'a PerceptionEvaluationConfig,
@@ -27,7 +35,56 @@ pub struct PerceptionEvaluationManager<'a> {
 }
 
 impl<'a> PerceptionEvaluationManager<'a> {
-    pub fn new(config: &'a PerceptionEvaluationConfig) -> DatasetResult<Self> {
+    /// Construct `PerceptionEvaluationManager` from `PerceptionEvaluationConfig`.
+    ///
+    /// * `config`  - Evaluation configuration.
+    ///
+    /// # Examples
+    /// ```
+    /// use perception_eval::{
+    ///     config::{get_evaluation_params, PerceptionEvaluationConfig},
+    ///     evaluation_task::EvaluationTask,
+    ///     frame_id::FrameID,
+    ///     manager::PerceptionEvaluationManager,
+    /// };  
+    /// use std::error::Error;
+    ///
+    /// type Result<T> = std::result::Result<T, Box<dyn Error>>;
+    ///
+    /// fn main() -> Result<()> {
+    ///     let result_dir = &format!(
+    ///         "./work_dir/{}",
+    ///         chrono::Local::now().format("%Y%m%d_%H%M%S")
+    ///     );
+    ///
+    ///     let (filter_params, metrics_params) = get_evaluation_params(
+    ///         &vec!["Car", "Bus", "Pedestrian"],
+    ///         100.0,
+    ///         100.0,
+    ///         Some(0),
+    ///         None,
+    ///         1.0,
+    ///         2.0,
+    ///         0.5,
+    ///         0.5,
+    ///     )?;
+    ///
+    ///     let config = PerceptionEvaluationConfig::new(
+    ///         "annotation",
+    ///         "./tests/sample_data",
+    ///         EvaluationTask::Detection,
+    ///         FrameID::BaseLink,
+    ///         result_dir,
+    ///         filter_params,
+    ///         metrics_params,
+    ///         false,
+    ///     );
+    ///
+    ///     let manager = PerceptionEvaluationManager::from(&config)?;
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn from(config: &'a PerceptionEvaluationConfig) -> DatasetResult<Self> {
         let frame_ground_truths = load_dataset(
             &config.version,
             &config.dataset_path,
@@ -43,6 +100,10 @@ impl<'a> PerceptionEvaluationManager<'a> {
         Ok(ret)
     }
 
+    /// Add estimated objects and ground truths at current frame.
+    ///
+    /// * `estimated_objects`   - List of estimated objects.
+    /// * `frame_ground_truth`  - Set of GTs that has the nearest timestamp.
     pub fn add_frame_result(
         &mut self,
         estimated_objects: &Vec<DynamicObject>,
@@ -66,11 +127,15 @@ impl<'a> PerceptionEvaluationManager<'a> {
         Ok(())
     }
 
+    /// Returns `FrameGroundTruth` that has the nearest timestamp to the current timestamp.
+    ///
+    /// * `timestamp`   - Current timestamp.
     pub fn get_frame_ground_truth(&self, timestamp: &NaiveDateTime) -> Option<FrameGroundTruth> {
         get_current_frame(&self.frame_ground_truths, &timestamp)
     }
 
-    pub fn get_scene_score(&self) -> MetricsResult<MetricsScore> {
+    /// Returns the `MetricsScore` that calculated metrics score with having been accumulated frame results till that time.
+    pub fn get_metrics_score(&self) -> MetricsResult<MetricsScore> {
         let target_labels = &self.config.metrics_params.target_labels;
         let mut score = MetricsScore::new(&self.config.metrics_params);
         let mut scene_results: HashMap<Label, Vec<PerceptionResult>> = HashMap::new();
@@ -111,6 +176,9 @@ impl<'a> PerceptionEvaluationManager<'a> {
         Ok(score)
     }
 
+    /// Filter `FrameGroundTruth` with `FilterParams`.
+    ///
+    /// * `frame_ground_truth`  - Set of GTs at one frame.
     fn filter_frame_ground_truth(&self, frame_ground_truth: &FrameGroundTruth) -> FrameGroundTruth {
         let filtered_gt = filter_objects(
             &frame_ground_truth.objects,

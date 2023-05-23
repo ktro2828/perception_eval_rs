@@ -2,6 +2,7 @@ use clap::Parser;
 use perception_eval::{
     config::{get_evaluation_params, PerceptionEvaluationConfig},
     evaluation_task::EvaluationTask,
+    frame_id::FrameID,
     manager::PerceptionEvaluationManager,
 };
 use std::error::Error;
@@ -14,12 +15,12 @@ struct Args {
     data_root: String,
 }
 
-pub type Result<T> = std::result::Result<T, Box<dyn Error>>;
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 fn main() -> Result<()> {
     let Args { version, data_root } = Args::parse();
 
-    let result_dir = format!(
+    let result_dir = &format!(
         "./work_dir/{}",
         chrono::Local::now().format("%Y%m%d_%H%M%S")
     );
@@ -40,14 +41,14 @@ fn main() -> Result<()> {
         &version,
         &data_root,
         EvaluationTask::Detection,
-        &"BaseLink".to_string(),
-        &result_dir,
+        FrameID::BaseLink,
+        result_dir,
         filter_params,
         metrics_params,
         false,
     );
 
-    let mut manager = PerceptionEvaluationManager::new(&config)?;
+    let mut manager = PerceptionEvaluationManager::from(&config)?;
 
     let mut frames = manager.frame_ground_truths.clone();
     for (_, frame) in frames.iter_mut().enumerate() {
@@ -58,7 +59,7 @@ fn main() -> Result<()> {
         }
     }
 
-    let score = manager.get_scene_score()?;
+    let score = manager.get_metrics_score()?;
     println!("{}", score);
 
     Ok(())

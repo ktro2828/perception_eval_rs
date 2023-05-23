@@ -4,7 +4,6 @@ use crate::utils::logger::configure_logger;
 use crate::{frame_id::FrameID, label::Label};
 use std::io::Error as IoError;
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 use std::vec;
 use thiserror::Error as ThisError;
 
@@ -49,22 +48,62 @@ impl PerceptionEvaluationConfig {
     /// * `filter_params`   - Parameter set to filter out objects.
     /// * `metrics_params`  - Parameter set to calculate metrics score.
     /// * `load_raw_data`   - Indicates whether to load raw data, which is pointcloud or image.
-    pub fn new<S>(
+    ///
+    /// # Examples
+    /// ```
+    /// use perception_eval::{
+    ///     config::{get_evaluation_params, PerceptionEvaluationConfig},
+    ///     evaluation_task::EvaluationTask,
+    ///     frame_id::FrameID,
+    ///     manager::PerceptionEvaluationManager,
+    /// };  
+    /// use std::error::Error;
+    ///
+    /// type Result<T> = std::result::Result<T, Box<dyn Error>>;
+    ///
+    /// fn main() -> Result<()> {
+    ///     let result_dir = &format!(
+    ///         "./work_dir/{}",
+    ///         chrono::Local::now().format("%Y%m%d_%H%M%S")
+    ///     );
+    ///
+    ///     let (filter_params, metrics_params) = get_evaluation_params(
+    ///         &vec!["Car", "Bus", "Pedestrian"],
+    ///         100.0,
+    ///         100.0,
+    ///         Some(0),
+    ///         None,
+    ///         1.0,
+    ///         2.0,
+    ///         0.5,
+    ///         0.5,
+    ///     )?;
+    ///
+    ///     let config = PerceptionEvaluationConfig::new(
+    ///         "annotation",
+    ///         "./tests/sample_data",
+    ///         EvaluationTask::Detection,
+    ///         FrameID::BaseLink,
+    ///         result_dir,
+    ///         filter_params,
+    ///         metrics_params,
+    ///         false,
+    ///     );
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn new(
         version: &str,
-        dataset_path: S,
+        dataset_path: &str,
         evaluation_task: EvaluationTask,
-        frame_id: S,
-        result_dir: S,
+        frame_id: FrameID,
+        result_dir: &str,
         filter_params: FilterParams,
         metrics_params: MetricsParams,
         load_raw_data: bool,
-    ) -> Self
-    where
-        S: AsRef<str>,
-    {
-        let dataset_path = Path::new(dataset_path.as_ref());
-        let frame_id = FrameID::from_str(frame_id.as_ref()).unwrap();
-        let result_dir = Path::new(result_dir.as_ref());
+    ) -> Self {
+        let dataset_path = Path::new(dataset_path);
+        let result_dir = Path::new(result_dir);
         let log_dir = result_dir.join("log");
         let viz_dir = result_dir.join("visualize");
 
