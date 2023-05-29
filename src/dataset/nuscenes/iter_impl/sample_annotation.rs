@@ -43,6 +43,6 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         self.tokens_iter
             .next()
-            .map(|token| self.refer(&self.dataset.sample_annotation_map[&token]))
+            .map(|token| self.refer(&self.dataset.sample_annotation_map[token]))
     }
 }

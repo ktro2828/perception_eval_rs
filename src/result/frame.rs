@@ -57,20 +57,20 @@ impl PerceptionFrameResult {
     pub fn new(
         results: Vec<PerceptionResult>,
         frame_ground_truth: FrameGroundTruth,
-        target_labels: &Vec<Label>,
+        target_labels: &[Label],
         matching_mode: MatchingMode,
-        matching_thresholds: &Vec<f64>,
+        matching_thresholds: &[f64],
     ) -> MatchingResult<Self> {
         let (tp_results, fp_results) =
             separate_tp_fp_results(&results, target_labels, &matching_mode, matching_thresholds)?;
         let fn_objects = extract_fn_objects(&frame_ground_truth.objects, &tp_results);
 
         let ret = Self {
-            results: results,
-            frame_ground_truth: frame_ground_truth,
-            tp_results: tp_results,
-            fp_results: fp_results,
-            fn_objects: fn_objects,
+            results,
+            frame_ground_truth,
+            tp_results,
+            fp_results,
+            fn_objects,
         };
 
         Ok(ret)
@@ -86,30 +86,28 @@ impl PerceptionFrameResult {
 /// * `matching_mode`       - MatchingMode instance to determine TP or FP.
 /// * `matching_thresholds` - List of matching thresholds.
 fn separate_tp_fp_results(
-    results: &Vec<PerceptionResult>,
-    target_labels: &Vec<Label>,
+    results: &[PerceptionResult],
+    target_labels: &[Label],
     matching_mode: &MatchingMode,
-    matching_thresholds: &Vec<f64>,
+    matching_thresholds: &[f64],
 ) -> MatchingResult<(Vec<PerceptionResult>, Vec<PerceptionResult>)> {
     let mut tp_results = Vec::new();
     let mut fp_results = Vec::new();
     results.iter().for_each(|result| {
-        match get_label_threshold(
+        if let Some(threshold) = get_label_threshold(
             &result.estimated_object.label,
             target_labels,
             matching_thresholds,
         ) {
-            Some(threshold) => {
-                let is_correct = result.is_result_correct(matching_mode, &threshold).unwrap(); // TODO
-                if is_correct {
-                    tp_results.push(result.clone());
-                } else {
-                    fp_results.push(result.clone());
-                }
+            let is_correct = result.is_result_correct(matching_mode, &threshold).unwrap(); // TODO
+            if is_correct {
+                tp_results.push(result.clone());
+            } else {
+                fp_results.push(result.clone());
             }
-            None => (),
         }
     });
+
     Ok((tp_results, fp_results))
 }
 
@@ -120,8 +118,8 @@ fn separate_tp_fp_results(
 /// * `ground_truths`   : List of GT objects.
 /// * `tp_results`      : List of TP results.
 fn extract_fn_objects(
-    ground_truths: &Vec<DynamicObject>,
-    tp_results: &Vec<PerceptionResult>,
+    ground_truths: &[DynamicObject],
+    tp_results: &[PerceptionResult],
 ) -> Vec<DynamicObject> {
     let mut fn_objects = Vec::new();
 
@@ -138,7 +136,7 @@ fn extract_fn_objects(
 ///
 /// * `ground_truth`: GT object.
 /// * `tp_results`  : List of TP results.
-fn is_fn_object(ground_truth: &DynamicObject, tp_results: &Vec<PerceptionResult>) -> bool {
+fn is_fn_object(ground_truth: &DynamicObject, tp_results: &[PerceptionResult]) -> bool {
     for tp in tp_results {
         match &tp.ground_truth_object {
             Some(gt) => {

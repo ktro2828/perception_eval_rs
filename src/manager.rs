@@ -93,8 +93,8 @@ impl<'a> PerceptionEvaluationManager<'a> {
         )?;
 
         let ret = Self {
-            config: config,
-            frame_ground_truths: frame_ground_truths,
+            config,
+            frame_ground_truths,
             frame_results: Vec::new(),
         };
         Ok(ret)
@@ -106,7 +106,7 @@ impl<'a> PerceptionEvaluationManager<'a> {
     /// * `frame_ground_truth`  - Set of GTs that has the nearest timestamp.
     pub fn add_frame_result(
         &mut self,
-        estimated_objects: &Vec<DynamicObject>,
+        estimated_objects: &[DynamicObject],
         frame_ground_truth: &FrameGroundTruth,
     ) -> MatchingResult<()> {
         let filtered_estimations =
@@ -131,7 +131,7 @@ impl<'a> PerceptionEvaluationManager<'a> {
     ///
     /// * `timestamp`   - Current timestamp.
     pub fn get_frame_ground_truth(&self, timestamp: &NaiveDateTime) -> Option<FrameGroundTruth> {
-        get_current_frame(&self.frame_ground_truths, &timestamp)
+        get_current_frame(&self.frame_ground_truths, timestamp)
     }
 
     /// Returns the `MetricsScore` that calculated metrics score with having been accumulated frame results till that time.
@@ -147,22 +147,18 @@ impl<'a> PerceptionEvaluationManager<'a> {
         });
 
         self.frame_results.iter().for_each(|frame| {
-            let mut result_map = hash_results(frame.results(), &target_labels);
-            let num_gt_map = hash_num_objects(&frame.frame_ground_truth().objects, &target_labels);
+            let mut result_map = hash_results(frame.results(), target_labels);
+            let num_gt_map = hash_num_objects(&frame.frame_ground_truth().objects, target_labels);
             target_labels.iter().for_each(|label| {
-                match scene_results.get_mut(&label) {
-                    Some(results) => match result_map.get_mut(&label) {
-                        Some(result) => results.append(result),
-                        None => (),
-                    },
-                    None => (),
+                if let Some(results) = scene_results.get_mut(label) {
+                    if let Some(result) = result_map.get_mut(label) {
+                        results.append(result)
+                    }
                 };
-                match num_scene_gt.get_mut(&label) {
-                    Some(num_gts) => match num_gt_map.get(&label) {
-                        Some(num_gt) => *num_gts += num_gt,
-                        None => (),
-                    },
-                    None => (),
+                if let Some(num_gts) = num_scene_gt.get_mut(label) {
+                    if let Some(num_gt) = num_gt_map.get(label) {
+                        *num_gts += num_gt
+                    }
                 };
             });
         });

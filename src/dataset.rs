@@ -126,7 +126,7 @@ fn sample_to_frame(
             orientation: sample_annotation.rotation,
             size: sample_annotation.size,
             confidence: 1.0,
-            label: label,
+            label,
             velocity: None,
             pointcloud_num: Some(sample_annotation.num_lidar_pts),
             uuid: Some(sample_annotation.instance_token.to_string()),
@@ -136,7 +136,7 @@ fn sample_to_frame(
 
     let ret = FrameGroundTruth {
         timestamp: sample.timestamp,
-        objects: objects,
+        objects,
     };
     Ok(ret)
 }
@@ -146,7 +146,7 @@ fn sample_to_frame(
 /// * `frame_ground_truths` - List of FrameGroundTruth instances.
 /// * `timestamp`           - Target timestamp.
 pub fn get_current_frame(
-    frame_ground_truths: &Vec<FrameGroundTruth>,
+    frame_ground_truths: &[FrameGroundTruth],
     timestamp: &NaiveDateTime,
 ) -> Option<FrameGroundTruth> {
     const TIME_THRESHOLD: i64 = 75; // [ms]

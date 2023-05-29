@@ -38,12 +38,12 @@ impl DetectionMetricsScore {
             .zip(matching_thresholds.iter())
             .enumerate()
         {
-            let results = results_map.get(&target_label).unwrap();
-            let num_gt = num_gt_map.get(&target_label).unwrap();
+            let results = results_map.get(target_label).unwrap();
+            let num_gt = num_gt_map.get(target_label).unwrap();
             ap_list[i] =
-                Ap::new(results, &num_gt).calculate_ap(TPMetricsAP, matching_mode, threshold);
+                Ap::new(results, num_gt).calculate_ap(TPMetricsAP, matching_mode, threshold);
             aph_list[i] =
-                Ap::new(results, &num_gt).calculate_ap(TPMetricsAPH, matching_mode, threshold);
+                Ap::new(results, num_gt).calculate_ap(TPMetricsAPH, matching_mode, threshold);
         }
 
         scores.insert(String::from("AP"), ap_list);
@@ -54,7 +54,7 @@ impl DetectionMetricsScore {
             target_labels: target_labels.to_owned(),
             matching_mode: matching_mode.to_owned(),
             thresholds: matching_thresholds.to_owned(),
-            scores: scores,
+            scores,
         }
     }
 }
@@ -85,7 +85,7 @@ impl Display for DetectionMetricsScore {
                 .for_each(|ap| msg += &format!(" {:.3} | ", ap));
         });
 
-        write!(f, "{}\n", msg)
+        writeln!(f, "{}\n", msg)
     }
 }
 
@@ -103,8 +103,8 @@ impl<'a> Ap<'a> {
     /// * `num_ground_truth`    - Number of GTs.
     pub(super) fn new(results: &'a Vec<PerceptionResult>, num_ground_truth: &'a usize) -> Self {
         Self {
-            results: results,
-            num_ground_truth: num_ground_truth,
+            results,
+            num_ground_truth,
         }
     }
 
@@ -127,7 +127,7 @@ impl<'a> Ap<'a> {
         let (max_precision_list, max_recall_list) =
             self.interpolate_precision_recall(precision_list, recall_list);
 
-        if max_precision_list.len() == 0 {
+        if max_precision_list.is_empty() {
             f64::NAN
         } else {
             let mut ap = 0.0;
@@ -147,7 +147,7 @@ impl<'a> Ap<'a> {
         precision_list: Vec<f64>,
         recall_list: Vec<f64>,
     ) -> (Vec<f64>, Vec<f64>) {
-        if self.results.len() == 0 && *self.num_ground_truth == 0 {
+        if self.results.is_empty() && *self.num_ground_truth == 0 {
             (Vec::new(), Vec::new())
         } else {
             let mut max_precision_list = vec![*precision_list.last().unwrap()];
@@ -165,8 +165,8 @@ impl<'a> Ap<'a> {
     /// Compute precision and recall values.
     ///
     /// * `tp_list` - List of TP values.
-    fn calculate_precision_recall(&self, tp_list: &Vec<f64>) -> (Vec<f64>, Vec<f64>) {
-        if self.results.len() == 0 && *self.num_ground_truth == 0 {
+    fn calculate_precision_recall(&self, tp_list: &[f64]) -> (Vec<f64>, Vec<f64>) {
+        if self.results.is_empty() && *self.num_ground_truth == 0 {
             (Vec::new(), Vec::new())
         } else {
             let num_results = self.results.len();
@@ -202,7 +202,7 @@ impl<'a> Ap<'a> {
     where
         T: TPMetrics,
     {
-        if self.results.len() == 0 && *self.num_ground_truth == 0 {
+        if self.results.is_empty() && *self.num_ground_truth == 0 {
             (Vec::new(), Vec::new())
         } else {
             let num_results = self.results.len();

@@ -115,7 +115,7 @@ impl<'a> LabelConverter<'a> {
             }
             _ => Err(LabelError::ValueError(label_prefix.to_string()))?,
         }
-        let ret = Self { pairs: pairs };
+        let ret = Self { pairs };
         Ok(ret)
     }
 

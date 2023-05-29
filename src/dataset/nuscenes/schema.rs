@@ -300,7 +300,7 @@ mod logfile_serde {
         {
             let value = match value {
                 "" => None,
-                path_str @ _ => Some(PathBuf::from(path_str)),
+                path_str => Some(PathBuf::from(path_str)),
             };
 
             Ok(value)
@@ -351,9 +351,9 @@ mod camera_intrinsic_serde {
             let mut matrix = [[0.0; 3]; 3];
             let mut length = 0;
 
-            for ind in 0..3 {
+            for row_mat in &mut matrix {
                 if let Some(row) = seq.next_element::<[f64; 3]>()? {
-                    matrix[ind] = row;
+                    *row_mat = row;
                     length += 1;
                 } else {
                     break;
@@ -379,8 +379,8 @@ mod camera_intrinsic_serde {
         match value {
             Some(matrix) => {
                 let mut seq = serializer.serialize_seq(Some(3))?;
-                for ind in 0..3 {
-                    seq.serialize_element(&matrix[ind])?;
+                for row_mat in matrix {
+                    seq.serialize_element(row_mat)?;
                 }
                 seq.end()
             }
@@ -424,8 +424,7 @@ mod long_token_serde {
         where
             E: DeserializeError,
         {
-            LongToken::try_from(text)
-                .map_err(|_err| E::invalid_value(Unexpected::Str(&text), &self))
+            LongToken::try_from(text).map_err(|_err| E::invalid_value(Unexpected::Str(text), &self))
         }
     }
 
@@ -476,7 +475,7 @@ mod short_token_serde {
             E: DeserializeError,
         {
             ShortToken::try_from(text)
-                .map_err(|_err| E::invalid_value(Unexpected::Str(&text), &self))
+                .map_err(|_err| E::invalid_value(Unexpected::Str(text), &self))
         }
     }
 

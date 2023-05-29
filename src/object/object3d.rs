@@ -73,10 +73,6 @@ impl PartialEq for DynamicObject {
             && self.orientation == other.orientation
             && self.label == other.label
     }
-
-    fn ne(&self, other: &Self) -> bool {
-        !self.eq(other)
-    }
 }
 
 impl DynamicObject {

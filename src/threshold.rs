@@ -27,8 +27,8 @@ impl<'a> LabelThreshold<'a> {
     /// ```
     pub fn new(label: &'a Label, target_labels: &'a Vec<Label>) -> Self {
         Self {
-            label: label,
-            target_labels: target_labels,
+            label,
+            target_labels,
         }
     }
 
@@ -51,7 +51,7 @@ impl<'a> LabelThreshold<'a> {
     /// let threshold = label_threshold.get_threshold(&thresholds).unwrap();
     /// assert_eq!(threshold, 1.0);
     /// ```
-    pub fn get_threshold<T>(&self, thresholds: &Vec<T>) -> Option<T>
+    pub fn get_threshold<T>(&self, thresholds: &[T]) -> Option<T>
     where
         T: Copy,
     {
@@ -77,11 +77,7 @@ impl<'a> LabelThreshold<'a> {
 /// let threshold = get_label_threshold(&label, &target_labels, &thresholds).unwrap();
 /// assert_eq!(threshold, 1.0);
 /// ```
-pub fn get_label_threshold<T>(
-    label: &Label,
-    target_labels: &Vec<Label>,
-    thresholds: &Vec<T>,
-) -> Option<T>
+pub fn get_label_threshold<T>(label: &Label, target_labels: &[Label], thresholds: &[T]) -> Option<T>
 where
     T: Copy,
 {

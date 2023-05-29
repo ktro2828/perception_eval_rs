@@ -50,32 +50,31 @@ use crate::{
 /// assert_eq!(ret, vec![object1]);
 /// ```
 pub fn filter_objects(
-    objects: &Vec<DynamicObject>,
+    objects: &[DynamicObject],
     is_gt: bool,
     filter_params: &FilterParams,
 ) -> Vec<DynamicObject> {
     let mut ret = Vec::new();
     for object in objects {
-        let is_target;
-        if is_gt {
-            is_target = is_target_object(
+        let is_target = if is_gt {
+            is_target_object(
                 object,
                 &filter_params.target_labels,
                 &filter_params.max_x_positions,
                 &filter_params.max_y_positions,
                 &filter_params.min_point_numbers,
                 &filter_params.target_uuids,
-            );
+            )
         } else {
-            is_target = is_target_object(
+            is_target_object(
                 object,
                 &filter_params.target_labels,
                 &filter_params.max_x_positions,
                 &filter_params.max_y_positions,
                 &None,
                 &None,
-            );
-        }
+            )
+        };
 
         if is_target {
             ret.push(object.to_owned());
@@ -96,8 +95,8 @@ pub fn filter_objects(
 fn is_target_object(
     object: &DynamicObject,
     target_labels: &Vec<Label>,
-    max_x_positions: &Vec<f64>,
-    max_y_positions: &Vec<f64>,
+    max_x_positions: &[f64],
+    max_y_positions: &[f64],
     min_point_numbers: &Option<Vec<usize>>,
     target_uuids: &Option<Vec<String>>,
 ) -> bool {
@@ -152,7 +151,7 @@ fn is_target_object(
     is_target &= {
         match target_uuids {
             Some(thresholds) => match &object.uuid {
-                Some(uuid) => thresholds.contains(&uuid),
+                Some(uuid) => thresholds.contains(uuid),
                 None => false,
             },
             None => true,
@@ -168,8 +167,8 @@ fn is_target_object(
 /// * `target_labels`   - List of target labels.
 #[allow(unused)]
 pub(crate) fn hash_objects(
-    objects: &Vec<DynamicObject>,
-    target_labels: &Vec<Label>,
+    objects: &[DynamicObject],
+    target_labels: &[Label],
 ) -> HashMap<Label, Vec<DynamicObject>> {
     let mut ret: HashMap<Label, Vec<DynamicObject>> = HashMap::new();
 
@@ -177,12 +176,11 @@ pub(crate) fn hash_objects(
         ret.insert(label.to_owned(), Vec::new());
     });
 
-    objects
-        .iter()
-        .for_each(|obj| match ret.get_mut(&obj.label) {
-            Some(v) => v.push(obj.clone()),
-            None => (),
-        });
+    objects.iter().for_each(|obj| {
+        if let Some(v) = ret.get_mut(&obj.label) {
+            v.push(obj.clone())
+        }
+    });
 
     ret
 }
@@ -192,8 +190,8 @@ pub(crate) fn hash_objects(
 /// * `objects`         - List of objects.
 /// * `target_labels`   - List of target labels.
 pub(crate) fn hash_num_objects(
-    objects: &Vec<DynamicObject>,
-    target_labels: &Vec<Label>,
+    objects: &[DynamicObject],
+    target_labels: &[Label],
 ) -> HashMap<Label, usize> {
     let mut ret: HashMap<Label, usize> = HashMap::new();
 
@@ -201,12 +199,11 @@ pub(crate) fn hash_num_objects(
         ret.insert(label.to_owned(), 0);
     });
 
-    objects
-        .iter()
-        .for_each(|obj| match ret.get_mut(&obj.label) {
-            Some(v) => *v += 1,
-            None => (),
-        });
+    objects.iter().for_each(|obj| {
+        if let Some(v) = ret.get_mut(&obj.label) {
+            *v += 1
+        }
+    });
 
     ret
 }
@@ -216,8 +213,8 @@ pub(crate) fn hash_num_objects(
 /// * `results`         - List of results.
 /// * `target_labels`   - List of target labels.
 pub(crate) fn hash_results(
-    results: &Vec<PerceptionResult>,
-    target_labels: &Vec<Label>,
+    results: &[PerceptionResult],
+    target_labels: &[Label],
 ) -> HashMap<Label, Vec<PerceptionResult>> {
     let mut ret: HashMap<Label, Vec<PerceptionResult>> = HashMap::new();
 
@@ -225,12 +222,11 @@ pub(crate) fn hash_results(
         ret.insert(label.to_owned(), Vec::new());
     });
 
-    results
-        .iter()
-        .for_each(|result| match ret.get_mut(&result.estimated_object.label) {
-            Some(v) => v.push(result.clone()),
-            None => (),
-        });
+    results.iter().for_each(|result| {
+        if let Some(v) = ret.get_mut(&result.estimated_object.label) {
+            v.push(result.clone())
+        }
+    });
 
     ret
 }
@@ -241,8 +237,8 @@ pub(crate) fn hash_results(
 /// * `target_labels`   - List of target labels.
 #[allow(unused)]
 pub(crate) fn hash_num_results(
-    results: &Vec<PerceptionResult>,
-    target_labels: &Vec<Label>,
+    results: &[PerceptionResult],
+    target_labels: &[Label],
 ) -> HashMap<Label, usize> {
     let mut ret: HashMap<Label, usize> = HashMap::new();
 
@@ -250,12 +246,11 @@ pub(crate) fn hash_num_results(
         ret.insert(label.to_owned(), 0);
     });
 
-    results
-        .iter()
-        .for_each(|result| match ret.get_mut(&result.estimated_object.label) {
-            Some(v) => *v += 1,
-            None => (),
-        });
+    results.iter().for_each(|result| {
+        if let Some(v) = ret.get_mut(&result.estimated_object.label) {
+            *v += 1
+        }
+    });
 
     ret
 }

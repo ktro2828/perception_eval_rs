@@ -112,14 +112,14 @@ impl PerceptionEvaluationConfig {
         Self {
             version: version.to_owned(),
             dataset_path: dataset_path.to_owned(),
-            evaluation_task: evaluation_task,
-            frame_id: frame_id,
+            evaluation_task,
+            frame_id,
             result_dir: result_dir.to_owned(),
-            log_dir: log_dir,
-            viz_dir: viz_dir,
-            filter_params: filter_params,
-            metrics_params: metrics_params,
-            load_raw_data: load_raw_data,
+            log_dir,
+            viz_dir,
+            filter_params,
+            metrics_params,
+            load_raw_data,
         }
     }
 }
@@ -161,19 +161,14 @@ impl FilterParams {
         let num_target_labels = target_labels.len();
         let max_x_positions = vec![max_x_position; num_target_labels];
         let max_y_positions = vec![max_y_position; num_target_labels];
-        let min_point_numbers = {
-            match min_point_number {
-                Some(num_pt) => Some(vec![num_pt; num_target_labels]),
-                None => None,
-            }
-        };
+        let min_point_numbers = min_point_number.map(|num_pt| vec![num_pt; num_target_labels]);
 
         let ret = Self {
-            target_labels: target_labels,
-            max_x_positions: max_x_positions,
-            max_y_positions: max_y_positions,
-            min_point_numbers: min_point_numbers,
-            target_uuids: target_uuids,
+            target_labels,
+            max_x_positions,
+            max_y_positions,
+            min_point_numbers,
+            target_uuids,
         };
         Ok(ret)
     }
@@ -220,11 +215,11 @@ impl MetricsParams {
         let iou3d_thresholds = vec![iou3d_threshold; num_target_labels];
 
         let ret = Self {
-            target_labels: target_labels,
-            center_distance_thresholds: center_distance_thresholds,
-            plane_distance_thresholds: plane_distance_thresholds,
-            iou2d_thresholds: iou2d_thresholds,
-            iou3d_thresholds: iou3d_thresholds,
+            target_labels,
+            center_distance_thresholds,
+            plane_distance_thresholds,
+            iou2d_thresholds,
+            iou3d_thresholds,
         };
         Ok(ret)
     }
