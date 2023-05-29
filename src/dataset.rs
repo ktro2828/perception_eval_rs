@@ -1,5 +1,6 @@
 pub mod nuscenes;
 
+use self::nuscenes::schema::Modality;
 use self::nuscenes::{internal::SampleInternal, NuScenes, WithDataset};
 use crate::{
     evaluation_task::EvaluationTask, frame_id::FrameID, label::LabelConverter,
@@ -66,20 +67,7 @@ pub fn load_dataset(
 
 /// Convert NuScenes sample into `FrameGroundTruth` instance.
 ///
-/// TODO: Transform position and rotation into BaseLink
-///
-/// let mut position = sample_annotation.translation;
-/// let mut orientation = sample_annotation.rotation;
-///
-/// // How should I get corresponding ego_pose??
-/// let ego_position = ego_pose.translation;
-/// let ego_orientation = ego_pose.rotation;
-///
-/// if *frame_id == FrameID::BaseLink {
-///     position = rotate(&position, &ego_orientation);
-///     orientation = rotate_q(&orientation, &ego_orientation);
-/// }
-///
+/// TODO: Transform position and rotation into BaseLin
 ///
 /// * `nusc`        - NuScenes instance.
 /// * `sample`      - Sample annotated in meta data.
@@ -94,44 +82,36 @@ fn sample_to_frame(
     // TODO
     // === update objects container ===
     let label_converter = LabelConverter::new("autoware")?;
-    // for sample_data in sample.sample_data_iter() {
-    //     if sample_data.fileformat != FileFormat::Bin {
-    //         continue;
-    //     }
-
-    //     let (_, boxes, _) = nusc.get_sample_data(&sample_data.token, &false)?;
-    //     boxes.iter().for_each(|nusc_box| {
-    //         let label = label_converter.convert(&nusc_box.name);
-    //         objects.push(DynamicObject {
-    //             timestamp: sample.timestamp.to_owned(),
-    //             position: nusc_box.position,
-    //             orientation: nusc_box.orientation,
-    //             size: nusc_box.size,
-    //             confidence: 1.0,
-    //             label: label,
-    //             velocity: None,
-    //             frame_id: frame_id.to_owned(),
-    //             pointcloud_num: Some(nusc_box.num_lidar_pts),
-    //             uuid: Some(nusc_box.instance.to_string()),
-    //         });
-    //     });
-    // }
-    for sample_annotation in sample.sample_annotation_iter() {
-        let instance = &nusc.instance_map[&sample_annotation.instance_token];
-        let label = label_converter.convert(&nusc.category_map[&instance.category_token].name);
-        let object = DynamicObject {
-            timestamp: sample.timestamp,
-            frame_id: frame_id.to_owned(),
-            position: sample_annotation.translation,
-            orientation: sample_annotation.rotation,
-            size: sample_annotation.size,
-            confidence: 1.0,
-            label,
-            velocity: None,
-            pointcloud_num: Some(sample_annotation.num_lidar_pts),
-            uuid: Some(sample_annotation.instance_token.to_string()),
-        };
-        objects.push(object);
+    for sample_data in sample.sample_data_iter() {
+        let cs_record = nusc
+            .calibrated_sensor_map
+            .get(&sample_data.calibrated_sensor_token)
+            .unwrap();
+        if nusc
+            .sensor_map
+            .get(&cs_record.sensor_token)
+            .unwrap()
+            .modality
+            != Modality::Lidar
+        {
+            continue;
+        }
+        let (_, boxes, _) = nusc.get_sample_data(&sample_data.token, &false)?;
+        boxes.iter().for_each(|nusc_box| {
+            let label = label_converter.convert(&nusc_box.name);
+            objects.push(DynamicObject {
+                timestamp: sample.timestamp.to_owned(),
+                position: nusc_box.position,
+                orientation: nusc_box.orientation,
+                size: nusc_box.size,
+                confidence: 1.0,
+                label: label,
+                velocity: None,
+                frame_id: frame_id.to_owned(),
+                pointcloud_num: Some(nusc_box.num_lidar_pts),
+                uuid: Some(nusc_box.instance.to_string()),
+            });
+        });
     }
 
     let ret = FrameGroundTruth {
