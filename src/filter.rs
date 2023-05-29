@@ -103,10 +103,13 @@ fn is_target_object(
 ) -> bool {
     let label_threshold = LabelThreshold::new(&object.label, target_labels);
 
-    let mut is_target = true;
-
     // target_labels
-    is_target &= target_labels.contains(&object.label);
+    let mut is_target = target_labels.contains(&object.label);
+
+    // Following filters must satisfy that object's label is included in target_labels
+    if !is_target {
+        return false;
+    }
 
     // max_x_positions
     is_target &= {
