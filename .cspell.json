@@ -3,6 +3,7 @@
     "appender",
     "autoware",
     "chrono",
+    "clippy",
     "datetime",
     "fileformat",
     "indicatif",
@@ -18,6 +19,7 @@
     "powf",
     "pullable",
     "pushable",
+    "rustfmt",
     "thiserror",
     "trafficcone"
   ]

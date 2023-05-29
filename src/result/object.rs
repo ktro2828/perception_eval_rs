@@ -66,8 +66,8 @@ impl PerceptionResult {
         ground_truth_object: Option<DynamicObject>,
     ) -> Self {
         Self {
-            estimated_object: estimated_object,
-            ground_truth_object: ground_truth_object,
+            estimated_object,
+            ground_truth_object,
         }
     }
 
@@ -181,7 +181,7 @@ impl PerceptionResult {
         };
         let is_correct = {
             match &self.ground_truth_object {
-                Some(gt) => matching_method.is_better_than(&self.estimated_object, &gt, threshold),
+                Some(gt) => matching_method.is_better_than(&self.estimated_object, gt, threshold),
                 None => false,
             }
         };
@@ -242,9 +242,9 @@ pub fn get_perception_results(
     // Use CenterDistance by default
     let matching_method = CenterDistanceMatching;
 
-    if estimated_objects.len() == 0 {
+    if estimated_objects.is_empty() {
         results
-    } else if ground_truth_objects.len() == 0 {
+    } else if ground_truth_objects.is_empty() {
         get_fp_perception_results(estimated_objects)
     } else {
         let mut score_table: Vec<Vec<Option<f64>>> =
@@ -301,7 +301,7 @@ pub fn get_perception_results(
 /// Returns list of `PerceptionResult` that ground_truth_object of each result is None, it means FP.
 ///
 /// * `estimated_objects`   - List of estimated objects.
-fn get_fp_perception_results(estimated_objects: &Vec<DynamicObject>) -> Vec<PerceptionResult> {
+fn get_fp_perception_results(estimated_objects: &[DynamicObject]) -> Vec<PerceptionResult> {
     estimated_objects
         .iter()
         .map(|obj| PerceptionResult::new(obj.to_owned(), None))

@@ -23,7 +23,7 @@ impl NuScenesBox {
     }
 
     pub fn rotate(&mut self, orientation: &[f64; 4]) {
-        self.position = rotate(&self.position, &orientation);
+        self.position = rotate(&self.position, orientation);
         self.orientation = rotate_q(&self.orientation, orientation);
     }
 

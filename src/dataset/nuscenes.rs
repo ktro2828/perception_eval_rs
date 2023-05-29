@@ -549,7 +549,7 @@ impl NuScenes {
                 .iter()
                 .map(|(sample_token, sample)| (sample_token, sample.timestamp))
                 .collect::<Vec<_>>();
-            sorted_pairs.sort_by_cached_key(|(_, timestamp)| timestamp.clone());
+            sorted_pairs.sort_by_cached_key(|(_, timestamp)| *timestamp);
 
             sorted_pairs
                 .into_iter()
@@ -563,7 +563,7 @@ impl NuScenes {
                 .iter()
                 .map(|(sample_token, sample)| (sample_token, sample.timestamp))
                 .collect::<Vec<_>>();
-            sorted_pairs.sort_by_cached_key(|(_, timestamp)| timestamp.clone());
+            sorted_pairs.sort_by_cached_key(|(_, timestamp)| *timestamp);
 
             sorted_pairs
                 .into_iter()
@@ -577,7 +577,7 @@ impl NuScenes {
                 .iter()
                 .map(|(sample_token, sample)| (sample_token, sample.timestamp))
                 .collect::<Vec<_>>();
-            sorted_pairs.sort_by_cached_key(|(_, timestamp)| timestamp.clone());
+            sorted_pairs.sort_by_cached_key(|(_, timestamp)| *timestamp);
 
             sorted_pairs
                 .into_iter()
@@ -595,7 +595,7 @@ impl NuScenes {
                         .iter()
                         .map(|sample_token| {
                             let sample = sample_internal_map
-                                .get(&sample_token)
+                                .get(sample_token)
                                 .ok_or(NuScenesError::InternalBug)?;
                             Ok(sample.timestamp)
                         })
@@ -607,7 +607,7 @@ impl NuScenes {
                     Ok((scene_token, timestamp))
                 })
                 .collect::<NuScenesResult<Vec<_>>>()?;
-            sorted_pairs.sort_by_cached_key(|(_, timestamp)| timestamp.clone());
+            sorted_pairs.sort_by_cached_key(|(_, timestamp)| *timestamp);
 
             sorted_pairs
                 .into_iter()
@@ -641,69 +641,65 @@ impl NuScenes {
         Ok(ret)
     }
 
-    pub fn attribute_iter<'a>(
-        &'a self,
-    ) -> Iter<'a, Attribute, HashMapKeys<'a, LongToken, Attribute>> {
+    pub fn attribute_iter(&self) -> Iter<'_, Attribute, HashMapKeys<'_, LongToken, Attribute>> {
         self.refer_iter(self.attribute_map.keys())
     }
 
-    pub fn calibrated_sensor_iter<'a>(
-        &'a self,
-    ) -> Iter<'a, CalibratedSensor, HashMapKeys<'a, LongToken, CalibratedSensor>> {
+    pub fn calibrated_sensor_iter(
+        &self,
+    ) -> Iter<'_, CalibratedSensor, HashMapKeys<'_, LongToken, CalibratedSensor>> {
         self.refer_iter(self.calibrated_sensor_map.keys())
     }
 
-    pub fn category_iter<'a>(&'a self) -> Iter<'a, Category, HashMapKeys<'a, LongToken, Category>> {
+    pub fn category_iter(&self) -> Iter<'_, Category, HashMapKeys<'_, LongToken, Category>> {
         self.refer_iter(self.category_map.keys())
     }
 
-    pub fn ego_pose_iter<'a>(&'a self) -> Iter<'a, EgoPose, SliceIter<'a, LongToken>> {
+    pub fn ego_pose_iter(&self) -> Iter<'_, EgoPose, SliceIter<'_, LongToken>> {
         self.refer_iter(self.sorted_ego_pose_tokens.iter())
     }
 
-    pub fn instance_iter<'a>(
-        &'a self,
-    ) -> Iter<'a, Instance, HashMapKeys<'a, LongToken, InstanceInternal>> {
+    pub fn instance_iter(
+        &self,
+    ) -> Iter<'_, Instance, HashMapKeys<'_, LongToken, InstanceInternal>> {
         self.refer_iter(self.instance_map.keys())
     }
 
-    pub fn log_iter<'a>(&'a self) -> Iter<'a, Log, HashMapKeys<'a, LongToken, Log>> {
+    pub fn log_iter(&self) -> Iter<'_, Log, HashMapKeys<'_, LongToken, Log>> {
         self.refer_iter(self.log_map.keys())
     }
 
-    pub fn map_iter<'a>(&'a self) -> Iter<'a, Map, HashMapKeys<'a, ShortToken, Map>> {
+    pub fn map_iter(&self) -> Iter<'_, Map, HashMapKeys<'_, ShortToken, Map>> {
         self.refer_iter(self.map_map.keys())
     }
 
-    pub fn sample_iter<'a>(&'a self) -> Iter<'a, SampleInternal, SliceIter<'a, LongToken>> {
+    pub fn sample_iter(&self) -> Iter<'_, SampleInternal, SliceIter<'_, LongToken>> {
         self.refer_iter(self.sorted_sample_tokens.iter())
     }
 
-    pub fn sample_annotation_iter<'a>(
-        &'a self,
-    ) -> Iter<'a, SampleAnnotation, HashMapKeys<'a, LongToken, SampleAnnotation>> {
+    pub fn sample_annotation_iter(
+        &self,
+    ) -> Iter<'_, SampleAnnotation, HashMapKeys<'_, LongToken, SampleAnnotation>> {
         self.refer_iter(self.sample_annotation_map.keys())
     }
 
-    pub fn sample_data_iter<'a>(&'a self) -> Iter<'a, SampleData, SliceIter<'a, LongToken>> {
+    pub fn sample_data_iter(&self) -> Iter<'_, SampleData, SliceIter<'_, LongToken>> {
         self.refer_iter(self.sorted_sample_data_tokens.iter())
     }
 
-    pub fn scene_iter<'a>(&'a self) -> Iter<'a, SceneInternal, SliceIter<'a, LongToken>> {
+    pub fn scene_iter(&self) -> Iter<'_, SceneInternal, SliceIter<'_, LongToken>> {
         self.refer_iter(self.sorted_scene_tokens.iter())
     }
 
-    pub fn sensor_iter<'a>(&'a self) -> Iter<'a, Sensor, HashMapKeys<'a, LongToken, Sensor>> {
+    pub fn sensor_iter(&self) -> Iter<'_, Sensor, HashMapKeys<'_, LongToken, Sensor>> {
         self.refer_iter(self.sensor_map.keys())
     }
 
-    pub fn visibility_iter<'a>(
-        &'a self,
-    ) -> Iter<'a, Visibility, HashMapKeys<'a, String, Visibility>> {
+    pub fn visibility_iter(&self) -> Iter<'_, Visibility, HashMapKeys<'_, String, Visibility>> {
         self.refer_iter(self.visibility_map.keys())
     }
 
-    fn refer_iter<'a, Value, It>(&'a self, tokens_iter: It) -> Iter<'a, Value, It> {
+    fn refer_iter<Value, It>(&self, tokens_iter: It) -> Iter<'_, Value, It> {
         Iter {
             dataset: self,
             tokens_iter,
@@ -811,7 +807,7 @@ impl NuScenes {
                 .iter()
                 .map(|token| self.get_box(token))
                 .collect::<NuScenesResult<Vec<NuScenesBox>>>()?;
-            return Ok(boxes);
+            Ok(boxes)
         } else {
             // let prev_sample_record = self
             //     .sample_map
@@ -820,7 +816,7 @@ impl NuScenes {
             let cur_ann_records = cur_sample_record
                 .annotation_tokens
                 .iter()
-                .map(|token| self.sample_annotation_map.get(&token).unwrap())
+                .map(|token| self.sample_annotation_map.get(token).unwrap())
                 .collect_vec();
             // let prev_ann_records = prev_sample_record
             //     .annotation_tokens
@@ -855,7 +851,7 @@ impl NuScenes {
     }
 
     pub fn get_box(&self, sample_annotation_token: &LongToken) -> NuScenesResult<NuScenesBox> {
-        let record = match self.sample_annotation_map.get(&sample_annotation_token) {
+        let record = match self.sample_annotation_map.get(sample_annotation_token) {
             Some(record) => record,
             None => {
                 let msg = format!(
@@ -875,7 +871,7 @@ impl NuScenes {
                 Err(NuScenesError::CorruptedDataset(msg))?
             }
         };
-        let category_name = match self.category_map.get(&category_token) {
+        let category_name = match self.category_map.get(category_token) {
             Some(record) => &record.name,
             None => {
                 let msg = format!(
@@ -935,7 +931,7 @@ impl<'a, T> Deref for WithDataset<'a, T> {
     }
 }
 
-fn load_json<'de, T, P>(path: P) -> NuScenesResult<T>
+fn load_json<T, P>(path: P) -> NuScenesResult<T>
 where
     P: AsRef<Path>,
     T: DeserializeOwned,

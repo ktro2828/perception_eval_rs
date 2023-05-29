@@ -30,7 +30,7 @@ impl MetricsScore {
         let scores: Vec<DetectionMetricsScore> = Vec::new();
         Self {
             params: params.to_owned(),
-            scores: scores,
+            scores,
         }
     }
 
