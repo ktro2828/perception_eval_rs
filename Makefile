@@ -27,4 +27,4 @@ format-check:
 
 .PHONY: lint
 lint:
-	@cargo clippy --all -- -D clippy::dpg-macro -D warnings
+	@cargo clippy --all -- -D clippy::dbg-macro -D warnings
