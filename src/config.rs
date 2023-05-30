@@ -1,11 +1,20 @@
+pub mod schema;
+
 use crate::evaluation_task::EvaluationTask;
 use crate::label::{convert_labels, LabelConverter, LabelResult};
 use crate::utils::logger::configure_logger;
 use crate::{frame_id::FrameID, label::Label};
-use std::io::Error as IoError;
-use std::path::{Path, PathBuf};
-use std::vec;
+use itertools::Itertools;
+use serde::de::DeserializeOwned;
+use std::{
+    fs::File,
+    io::{BufReader, Error as IoError},
+    path::{Path, PathBuf},
+    vec,
+};
 use thiserror::Error as ThisError;
+
+use self::schema::Scenario;
 
 pub type ConfigResult<T> = Result<T, ConfigError>;
 
@@ -14,6 +23,8 @@ pub type ConfigResult<T> = Result<T, ConfigError>;
 pub enum ConfigError {
     #[error("internal error")]
     InternalError,
+    #[error("corrupted file: {0}")]
+    CorruptedFile(String),
     #[error("I/O error: {0}")]
     IoError(#[from] IoError),
     #[error("value error: {0}")]
@@ -121,6 +132,58 @@ impl PerceptionEvaluationConfig {
             metrics_params,
             load_raw_data,
         }
+    }
+
+    pub fn from(scenario: &str, result_dir: &str, load_raw_data: bool) -> ConfigResult<Self> {
+        let scenario: Scenario = load_yaml(scenario)?;
+        let datasets = scenario.evaluation.datasets;
+
+        // TODO
+        let mut dataset_path = PathBuf::new();
+        let mut version = String::new();
+        for (key, value) in &datasets[0] {
+            dataset_path.set_file_name(key);
+            version = value.version.clone();
+        }
+
+        let params = scenario.evaluation.config.params;
+        let target_labels = params.target_labels.iter().map(|s| s as &str).collect_vec();
+        let filter_params = FilterParams::new(
+            &target_labels,
+            params.max_x_position,
+            params.max_y_position,
+            params.min_point_number,
+            params.target_uuids,
+        )
+        .unwrap(); // TODO
+        let metrics_params = MetricsParams::new(
+            &target_labels,
+            params.center_distance_threshold,
+            params.plane_distance_threshold,
+            params.iou_2d_threshold,
+            params.iou_3d_threshold,
+        )
+        .unwrap(); // TODO
+
+        let result_dir = Path::new(result_dir);
+        let log_dir = result_dir.join("log");
+        let viz_dir = result_dir.join("visualize");
+
+        configure_logger(&log_dir, log::Level::Debug).unwrap();
+
+        let config = Self {
+            version,
+            dataset_path,
+            evaluation_task: params.evaluation_task,
+            frame_id: params.frame_id,
+            result_dir: result_dir.to_owned(),
+            log_dir,
+            viz_dir,
+            filter_params,
+            metrics_params,
+            load_raw_data,
+        };
+        Ok(config)
     }
 }
 
@@ -281,4 +344,21 @@ pub fn get_evaluation_params(
     )?;
 
     Ok((f_params, m_params))
+}
+
+fn load_yaml<T, P>(path: P) -> ConfigResult<T>
+where
+    P: AsRef<Path>,
+    T: DeserializeOwned,
+{
+    let reader = BufReader::new(File::open(path.as_ref())?);
+    let value = serde_yaml::from_reader(reader).map_err(|err| {
+        let msg = format!(
+            "failed to load scenario file {}: {:?}",
+            path.as_ref().display(),
+            err
+        );
+        ConfigError::CorruptedFile(msg)
+    })?;
+    Ok(value)
 }

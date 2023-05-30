@@ -1,0 +1,29 @@
+ScenarioFormatVersion: 3.0.0
+ScenarioName: sample_perception_evaluation
+ScenarioDescription: sample evaluation for perception
+SensorModel: sample_sensor_kit
+VehicleModel: sample_vehicle
+Evaluation:
+  UseCaseName: perception
+  UseCaseFormatVersion: 0.4.0
+  Datasets:
+    - tests/sample_data:
+        Version: annotation
+        VehicleId: default # Specify VehicleId for each data set.
+        LaunchSensing: false # Specifies whether the sensing module should be activated for each dataset. if false, use concatenated/pointcloud in bag
+        LocalMapPath: $HOME/autoware_map/sample-map-planning # Specify LocalMapPath for each data set.
+  Conditions:
+    PassRate: 99.0 # How much (%) of the evaluation attempts are considered successful.
+  PerceptionEvaluationConfig:
+    evaluation_config_dict:
+      evaluation_task: detection
+      frame_id: base_link
+      target_labels: [car, bicycle, pedestrian, motorbike]
+      max_x_position: 100.0
+      max_y_position: 100.0
+      min_point_number: 0
+      target_uuids: null
+      center_distance_threshold: 1.0
+      plane_distance_threshold: 2.0
+      iou_2d_threshold: 0.5
+      iou_3d_threshold: 0.5
