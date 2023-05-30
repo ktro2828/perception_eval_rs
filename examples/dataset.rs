@@ -46,7 +46,7 @@ fn main() -> Result<()> {
         .unwrap();
 
         println!(
-            "[Frame {}] Current GT:  {}, (Corresponding GT): {}",
+            "[Frame {}]\n(Current GT):  {}\n(Corresponding GT): {}",
             &i, &frame_ground_truths[i], &gt
         );
 
