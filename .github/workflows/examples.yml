@@ -1,0 +1,26 @@
+name: examples
+
+on:
+  push:
+    branches: [main, release]
+    paths-ignore: [docs/**, README.md, .cspell.json, .gitignore]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Check
+        run: make check
+
+      - name: Run examples
+        run: make examples
