@@ -28,3 +28,8 @@ format-check:
 .PHONY: lint
 lint:
 	@cargo clippy --all -- -D clippy::dbg-macro -D warnings
+
+.PHONY: examples
+examples:
+	@cargo run --example dataset
+	@cargo run --example detection
