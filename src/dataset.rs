@@ -106,7 +106,7 @@ fn sample_to_frame(
                 orientation: nusc_box.orientation,
                 size: nusc_box.size,
                 confidence: 1.0,
-                label: label,
+                label,
                 velocity: None,
                 frame_id: frame_id.to_owned(),
                 pointcloud_num: Some(nusc_box.num_lidar_pts),
