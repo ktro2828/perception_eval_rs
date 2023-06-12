@@ -93,6 +93,7 @@ fn sample_to_frame(
             .unwrap()
             .modality
             != Modality::Lidar
+            || sample_data.timestamp != sample.timestamp
         {
             continue;
         }
