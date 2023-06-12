@@ -205,7 +205,7 @@ pub struct Visibility {
     pub description: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum Modality {
     #[serde(rename = "camera")]
     Camera,

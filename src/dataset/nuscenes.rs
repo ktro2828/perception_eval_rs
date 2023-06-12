@@ -725,7 +725,7 @@ impl NuScenes {
         &self,
         sample_data_token: &LongToken,
         use_sensor_frame: &bool,
-    ) -> NuScenesResult<(PathBuf, Vec<NuScenesBox>, Option<[[f64; 3]; 3]>)> {
+    ) -> NuScenesResult<(PathBuf, Vec<NuScenesBox>)> {
         let sd_record = match self.sample_data_map.get(sample_data_token) {
             Some(record) => record,
             None => {
@@ -761,7 +761,6 @@ impl NuScenes {
             }
         };
 
-        let cam_intrinsic = cs_record.camera_intrinsic;
         let data_path = self.get_sample_data_path(sample_data_token)?;
 
         let mut boxes = self.get_boxes(sample_data_token)?;
@@ -777,7 +776,7 @@ impl NuScenes {
             }
         });
 
-        Ok((data_path, boxes, cam_intrinsic))
+        Ok((data_path, boxes))
     }
 
     pub fn get_boxes(&self, sample_data_token: &LongToken) -> NuScenesResult<Vec<NuScenesBox>> {
@@ -809,42 +808,15 @@ impl NuScenes {
                 .collect::<NuScenesResult<Vec<NuScenesBox>>>()?;
             Ok(boxes)
         } else {
-            // let prev_sample_record = self
-            //     .sample_map
-            //     .get(&cur_sample_record.prev.as_ref().unwrap())
-            //     .unwrap();
             let cur_ann_records = cur_sample_record
                 .annotation_tokens
                 .iter()
                 .map(|token| self.sample_annotation_map.get(token).unwrap())
                 .collect_vec();
-            // let prev_ann_records = prev_sample_record
-            //     .annotation_tokens
-            //     .iter()
-            //     .map(|token| self.sample_annotation_map.get(&token).unwrap())
-            //     .collect_vec();
-
-            // let prev_instance_map: HashMap<LongToken, SampleAnnotation> = prev_ann_records
-            //     .iter()
-            //     .map(|record| {
-            //         let mut entry = HashMap::new();
-            //         entry.insert(record.instance_token, record);
-            //     })
-            //     .collect();
-
-            // let t0 = prev_sample_record.timestamp;
-            // let t1 = cur_sample_record.timestamp;
-            // let t = sd_record.timestamp.min(t1).max(t0);
 
             let boxes = cur_ann_records
                 .iter()
-                .map(|ann_record| {
-                    // if prev_instance_map.contains_key(&ann_record.instance_token) {
-                    //     let prev_ann_record = prev_instance_map[&ann_record.instance_token];
-                    //     let center =
-                    // }
-                    self.get_box(&ann_record.token)
-                })
+                .map(|ann_record| self.get_box(&ann_record.token))
                 .collect::<NuScenesResult<Vec<NuScenesBox>>>()?;
             Ok(boxes)
         }
