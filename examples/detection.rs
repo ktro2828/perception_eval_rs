@@ -1,52 +1,28 @@
 use clap::Parser;
-use perception_eval::{
-    config::{get_evaluation_params, PerceptionEvaluationConfig},
-    evaluation_task::EvaluationTask,
-    frame_id::FrameID,
-    manager::PerceptionEvaluationManager,
-};
+use perception_eval::{config::PerceptionEvaluationConfig, manager::PerceptionEvaluationManager};
 use std::error::Error;
 
 #[derive(Parser)]
 struct Args {
-    #[clap(short = 'v', long = "version", default_value = "annotation")]
-    version: String,
-    #[clap(short = 'd', long = "data-root", default_value = "./tests/sample_data")]
-    data_root: String,
+    #[clap(
+        short = 's',
+        long = "scenario",
+        default_value = "tests/config/perception.yaml"
+    )]
+    scenario: String,
 }
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 fn main() -> Result<()> {
-    let Args { version, data_root } = Args::parse();
+    let Args { scenario } = Args::parse();
 
     let result_dir = &format!(
         "./work_dir/{}",
         chrono::Local::now().format("%Y%m%d_%H%M%S")
     );
 
-    let (filter_params, metrics_params) = get_evaluation_params(
-        &vec!["Car", "Bus", "Pedestrian"],
-        100.0,
-        100.0,
-        Some(0),
-        None,
-        1.0,
-        2.0,
-        0.5,
-        0.5,
-    )?;
-
-    let config = PerceptionEvaluationConfig::new(
-        &version,
-        &data_root,
-        EvaluationTask::Detection,
-        FrameID::BaseLink,
-        result_dir,
-        filter_params,
-        metrics_params,
-        false,
-    );
+    let config = PerceptionEvaluationConfig::from(&scenario, result_dir, false)?;
 
     let mut manager = PerceptionEvaluationManager::from(&config)?;
 

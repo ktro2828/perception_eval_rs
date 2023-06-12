@@ -21,6 +21,7 @@
     "pushable",
     "rustfmt",
     "thiserror",
-    "trafficcone"
+    "trafficcone",
+    "usecase"
   ]
 }

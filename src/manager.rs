@@ -42,7 +42,7 @@ impl<'a> PerceptionEvaluationManager<'a> {
     /// # Examples
     /// ```
     /// use perception_eval::{
-    ///     config::{get_evaluation_params, PerceptionEvaluationConfig},
+    ///     config::PerceptionEvaluationConfig,
     ///     evaluation_task::EvaluationTask,
     ///     frame_id::FrameID,
     ///     manager::PerceptionEvaluationManager,
@@ -52,33 +52,13 @@ impl<'a> PerceptionEvaluationManager<'a> {
     /// type Result<T> = std::result::Result<T, Box<dyn Error>>;
     ///
     /// fn main() -> Result<()> {
+    ///     let scenario = "tests/config/perception.yaml";
     ///     let result_dir = &format!(
     ///         "./work_dir/{}",
     ///         chrono::Local::now().format("%Y%m%d_%H%M%S")
     ///     );
     ///
-    ///     let (filter_params, metrics_params) = get_evaluation_params(
-    ///         &vec!["Car", "Bus", "Pedestrian"],
-    ///         100.0,
-    ///         100.0,
-    ///         Some(0),
-    ///         None,
-    ///         1.0,
-    ///         2.0,
-    ///         0.5,
-    ///         0.5,
-    ///     )?;
-    ///
-    ///     let config = PerceptionEvaluationConfig::new(
-    ///         "annotation",
-    ///         "./tests/sample_data",
-    ///         EvaluationTask::Detection,
-    ///         FrameID::BaseLink,
-    ///         result_dir,
-    ///         filter_params,
-    ///         metrics_params,
-    ///         false,
-    ///     );
+    ///     let config = PerceptionEvaluationConfig::from(&scenario, result_dir, false)?;
     ///
     ///     let manager = PerceptionEvaluationManager::from(&config)?;
     ///     Ok(())
