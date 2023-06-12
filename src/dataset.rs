@@ -96,7 +96,7 @@ fn sample_to_frame(
         {
             continue;
         }
-        let (_, boxes, _) = nusc.get_sample_data(&sample_data.token, &false)?;
+        let (_, boxes) = nusc.get_sample_data(&sample_data.token, &false)?;
         boxes.iter().for_each(|nusc_box| {
             let label = label_converter.convert(&nusc_box.name);
             objects.push(DynamicObject {

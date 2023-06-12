@@ -725,7 +725,7 @@ impl NuScenes {
         &self,
         sample_data_token: &LongToken,
         use_sensor_frame: &bool,
-    ) -> NuScenesResult<(PathBuf, Vec<NuScenesBox>, Option<[[f64; 3]; 3]>)> {
+    ) -> NuScenesResult<(PathBuf, Vec<NuScenesBox>)> {
         let sd_record = match self.sample_data_map.get(sample_data_token) {
             Some(record) => record,
             None => {
@@ -761,7 +761,6 @@ impl NuScenes {
             }
         };
 
-        let cam_intrinsic = cs_record.camera_intrinsic;
         let data_path = self.get_sample_data_path(sample_data_token)?;
 
         let mut boxes = self.get_boxes(sample_data_token)?;
@@ -777,7 +776,7 @@ impl NuScenes {
             }
         });
 
-        Ok((data_path, boxes, cam_intrinsic))
+        Ok((data_path, boxes))
     }
 
     pub fn get_boxes(&self, sample_data_token: &LongToken) -> NuScenesResult<Vec<NuScenesBox>> {
