@@ -273,6 +273,10 @@ pub fn get_perception_results(
                     },
                 );
 
+                if gt_idx == usize::MAX {
+                    continue;
+                }
+
                 results.push(PerceptionResult {
                     estimated_object: estimated_objects[est_idx].to_owned(),
                     ground_truth_object: Some(ground_truth_objects[gt_idx].to_owned()),
