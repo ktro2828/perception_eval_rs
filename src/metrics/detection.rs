@@ -72,17 +72,19 @@ impl Display for DetectionMetricsScore {
             )
         });
 
-        msg += "\n|    Label |";
+        msg += &format!("\n|{0:>10}|", "Label");
         self.target_labels
             .iter()
             .enumerate()
-            .for_each(|(i, label)| msg += &format!("{}({:.2}) |", label, self.thresholds[i]));
+            .for_each(|(i, label)| {
+                msg += &format!("{0:^10}({1:<.3}) |", label, self.thresholds[i])
+            });
 
         self.scores.iter().for_each(|(key, values)| {
-            msg += &format!("\n|    {} |", key);
+            msg += &format!("\n|{0:>10}|", key);
             values
                 .iter()
-                .for_each(|ap| msg += &format!(" {:.3} | ", ap));
+                .for_each(|ap| msg += &format!(" {0:>10.3} | ", ap));
         });
 
         writeln!(f, "{}\n", msg)
