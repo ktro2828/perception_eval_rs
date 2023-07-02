@@ -119,7 +119,12 @@ impl MatchingMethod for Iou2dMatching {
         let est_area = estimated_object.area();
         let gt_area = ground_truth_object.area();
         let intersection_area = get_intersection_area(estimated_object, ground_truth_object);
-        intersection_area / (est_area + gt_area - intersection_area)
+        let union_area = est_area + gt_area - intersection_area;
+        if union_area == 0.0 {
+            0.0
+        } else {
+            intersection_area / union_area
+        }
     }
 
     fn is_better_than(
@@ -145,7 +150,12 @@ impl MatchingMethod for Iou3dMatching {
         let est_volume = estimated_object.volume();
         let gt_volume = ground_truth_object.volume();
         let intersection_volume = get_intersection_volume(estimated_object, ground_truth_object);
-        intersection_volume / (est_volume + gt_volume - intersection_volume)
+        let union_volume = est_volume + gt_volume - intersection_volume;
+        if union_volume == 0.0 {
+            0.0
+        } else {
+            intersection_volume / union_volume
+        }
     }
 
     fn is_better_than(
