@@ -35,6 +35,7 @@ fn main() -> Result<()> {
         }
     }
 
+    println!(">>>Start getting metrics score");
     let score = manager.get_metrics_score()?;
     println!("{}", score);
 

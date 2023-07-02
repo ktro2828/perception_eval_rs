@@ -59,24 +59,24 @@ impl MetricsScore {
 
         self.scores.push(plane_distance_scores_map);
 
-        let iou2d_scores_map = DetectionMetricsScore::new(
-            results_map,
-            num_gt_map,
-            &self.params.target_labels,
-            &MatchingMode::Iou2d,
-            &self.params.iou2d_thresholds,
-        );
+        // let iou2d_scores_map = DetectionMetricsScore::new(
+        //     results_map,
+        //     num_gt_map,
+        //     &self.params.target_labels,
+        //     &MatchingMode::Iou2d,
+        //     &self.params.iou2d_thresholds,
+        // );
 
-        self.scores.push(iou2d_scores_map);
+        // self.scores.push(iou2d_scores_map);
 
-        let iou3d_scores_map = DetectionMetricsScore::new(
-            results_map,
-            num_gt_map,
-            &self.params.target_labels,
-            &MatchingMode::Iou3d,
-            &self.params.iou3d_thresholds,
-        );
+        // let iou3d_scores_map = DetectionMetricsScore::new(
+        //     results_map,
+        //     num_gt_map,
+        //     &self.params.target_labels,
+        //     &MatchingMode::Iou3d,
+        //     &self.params.iou3d_thresholds,
+        // );
 
-        self.scores.push(iou3d_scores_map);
+        // self.scores.push(iou3d_scores_map);
     }
 }
