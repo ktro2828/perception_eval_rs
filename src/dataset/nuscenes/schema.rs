@@ -579,7 +579,7 @@ mod timestamp_serde {
     where
         S: Serializer,
     {
-        let timestamp = value.timestamp_nanos() as f64 / 1_000_000_000.0;
+        let timestamp = value.timestamp_nanos_opt().unwrap() as f64 / 1_000_000_000.0;
         serializer.serialize_f64(timestamp)
     }
 
