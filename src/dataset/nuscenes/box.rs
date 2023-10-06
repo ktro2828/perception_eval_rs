@@ -14,12 +14,35 @@ pub struct NuScenesBox {
 }
 
 impl NuScenesBox {
+    /// Translates own position with input vector.
+    /// This method is the destructive operation.
+    ///
+    /// * `xyz` - A translation 3d-vector, ordering (x, y, z).
     pub fn translate(&mut self, xyz: &[f64; 3]) {
         self.position = translate(&self.position, xyz);
     }
 
+    /// Returns the translated position with input vector.
+    /// This method is the nondestructive operation.
+    ///
+    /// * `xyz` - A translation 3d-vector, ordering (x, y, z).
+    pub fn get_translate(&self, xyz: &[f64; 3]) -> [f64; 3] {
+        translate(&self.position, xyz)
+    }
+
+    /// Inverse-translates own position with input vector.
+    /// This method is the destructive operation.
+    ///
+    /// * `xyz` - A translation 3d-vector, ordering (x, y, z).
     pub fn translate_inv(&mut self, xyz: &[f64; 3]) {
         self.position = translate_inv(&self.position, xyz);
+    }
+
+    /// Returns the inverse-translated position with input vector.
+    ///
+    /// * `xyz` - A translation 3d-vector, ordering (x, y, z).
+    pub fn get_translate_inv(&self, xyz: &[f64; 3]) -> [f64; 3] {
+        translate_inv(&self.position, xyz)
     }
 
     pub fn rotate(&mut self, orientation: &[f64; 4]) {
