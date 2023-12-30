@@ -177,6 +177,7 @@ impl FilterParams {
 }
 
 /// Parameter set to calculate metrics score.
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct MetricsParams {
     pub(crate) target_labels: Vec<Label>,
